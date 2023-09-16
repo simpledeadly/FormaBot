@@ -11,11 +11,11 @@ let selections = {
   attempt: '',
   end: '',
   messageId: null
-  // comment: '',
 };
 
 let sele = {
-  comment: ''
+  comment: '',
+  description: ''
 }
 
 let screenshots = [];
@@ -24,9 +24,15 @@ bot.on('message', (callbackQuery) => {
   if (callbackQuery.photo) {
     const fileId = callbackQuery.photo[callbackQuery.photo.length - 1].file_id;
     const chatId = callbackQuery.chat.id;
+    const descriptionOfEntry = callbackQuery.caption;
 
+    if (sele.description === '') {
+      sele.description = descriptionOfEntry;
+    } else {}
+    
     screenshots.push(fileId);
     console.log(`Скриншот сохранен: ${ fileId }`);
+    console.log(`Описание входа: ${ descriptionOfEntry }`)
 
     if (screenshots.length > 1 && screenshots.length < 3 && selections.currencyPair) {
       const options = {
@@ -211,7 +217,7 @@ const handleStep2 = (callbackQuery) => {
 
   bot.sendMessage(
     chatId,
-    `*${'Шаг 2: Прикрепите скриншоты'}* _${'(минимум: 2)'}_`,
+    `*${'Шаг 2: Прикрепите скриншоты'}* _${'(минимум: 3)'}_`,
     options = { parse_mode: 'Markdown' }
   );
 };
@@ -264,7 +270,7 @@ const handleStep4 = (callbackQuery) => {
   selections.end = end;
   console.log('Итог сделки:', end);
   
-  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }*\n\n_${ sele.comment }_`;
+  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\nОписание:\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\nКомментарий:\n_${ sele.comment }_` : '' }`;
   const options = { parse_mode: 'Markdown' };
 
   bot.sendMessage(chatId, `_${'Отправлено в канал:'}_`, options).then(() => {
@@ -332,15 +338,6 @@ const handleStep4 = (callbackQuery) => {
       const channelId = '-1001875103729'; // ID of my BO trades channel
       bot.sendMediaGroup(channelId, media, options) // Send created post to channel
       bot.sendMediaGroup(chatId, media, options).then(() => {
-        selections = {
-          currencyPair: '',
-          outcome: '',
-          attempt: '',
-          end: '',
-          messageId: null
-        };
-        screenshots = [];
-        sele.comment = '';
         createCounterGlobal++
         createCounter++;
 
@@ -399,7 +396,10 @@ bot.onText(/\/create/, (msg) => {
       messageId: null
     };
     screenshots = [];
-    sele.comment = '';
+    sele = {
+      comment: '',
+      description: ''
+    };
 
     console.log(`Создание нового поста...`);
   } else if (hasMinus === true) {
