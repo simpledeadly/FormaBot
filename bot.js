@@ -28,11 +28,12 @@ bot.on('message', (callbackQuery) => {
 
     if (sele.description === '') {
       sele.description = descriptionOfEntry;
+
+      setTimeout(() => console.log(`Описание входа: ${ descriptionOfEntry }`), 500);
     } else {}
     
     screenshots.push(fileId);
     console.log(`Скриншот сохранен: ${ fileId }`);
-    console.log(`Описание входа: ${ descriptionOfEntry }`)
 
     if (screenshots.length > 1 && screenshots.length < 3 && selections.currencyPair) {
       const options = {
@@ -50,7 +51,7 @@ bot.on('message', (callbackQuery) => {
   
       bot.sendMessage(
         chatId,
-        `*${'Шаг 3: Выберите с какой попытки сделка была закончена'}*\n_${'(Можно добавить комментарий)'}_`,
+        `*${'Шаг 3: Выберите с какой попытки сделка была закончена'}*\n${'(Можно добавить комментарий)'}`,
         options,
         selections.messageId
       );
@@ -215,11 +216,16 @@ const handleStep2 = (callbackQuery) => {
   selections.currencyPair = currencyPair;
   console.log('Валютная пара:', currencyPair);
 
-  bot.sendMessage(
-    chatId,
-    `*${'Шаг 2: Прикрепите скриншоты'}* _${'(минимум: 3)'}_`,
-    options = { parse_mode: 'Markdown' }
-  );
+  if (selections.currencyPair !== '') {
+    endFindingTime = new Date(); // and start fulfilling the trade.
+    const timeDifference = endFindingTime - startFindingTime;
+    var formattedFindingTime = formatToMinutes(timeDifference);
+  }
+
+  options = { parse_mode: 'Markdown' }
+
+  bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, options);
+  bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, options);
 };
 
 const handleStep3 = (callbackQuery) => {
@@ -259,13 +265,29 @@ const handleStep3 = (callbackQuery) => {
   );
 };
 
-let pluses = 0
-
 let hasMinus = false
+let pluses = 0
+let fulfillingTimeIncrement = 0;
 
 const handleStep4 = (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const end = callbackQuery.data;
+
+  endFulfilling = new Date();
+  const formattedDifferenceFulfilling = endFulfilling - endFindingTime;
+  const formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling);
+
+  // Затравочка для следующего обновления. Продолжение следует...
+  fulfillingTimeIncrement++;
+
+  let fulfillingTimeElements = [];
+
+  const fulfillingTimeElement = {
+    [fulfillingTimeIncrement]: formattedFulfillingTime
+  };
+
+  fulfillingTimeElements.push(fulfillingTimeElement);
+  console.log('Все элементы нового массива для некст обновы:', fulfillingTimeElements);
 
   selections.end = end;
   console.log('Итог сделки:', end);
@@ -334,25 +356,39 @@ const handleStep4 = (callbackQuery) => {
         hasMinus = true
       }
 
+      setTimeout(() => {
+        bot.sendMessage(chatId, `*${`Ушло времени на отработку: ${ formattedFulfillingTime }`}*`, options);
+      }, 1000)
+
       const cryptoChannelId = '-1001904496260'; // ID of crypto-trades
       const channelId = '-1001875103729'; // ID of my BO trades channel
-      bot.sendMediaGroup(channelId, media, options) // Send created post to channel
+      bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')) // Send created post to channel
       bot.sendMediaGroup(chatId, media, options).then(() => {
         createCounterGlobal++
         createCounter++;
 
-        console.log('Пост создан!');
+        console.log('Итог создан.');
       })
     } else {
-      console.log('Ты не прикрепил скриншот, чорт!');
+      bot.sendMessage(chatId, `*${'Прикрепите скриншоты.'}*`, options);
+      console.log('Скриншоты не прикреплены.');
     }
   })
 };
 
-function formatMilliseconds(milliseconds) {
-  const hours = Math.floor(milliseconds / (1000 * 60 * 60));
-  const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
-  const formattedTime = `${ hours } ${'часов'} ${ minutes } ${'минут'}`;
+function formatMilliseconds(ms) {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+
+  const formattedTime = `${ hours } ${'часов'} ${ minutes } ${'минут'}`; // добавить определение кол-ва минут, правильно записывать форму слова.
+
+  return formattedTime;
+}
+
+function formatToMinutes(ms) {
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+
+  const formattedTime = `${ minutes } ${'минут'}`; // добавить определение кол-ва минут, правильно записывать форму слова.
 
   return formattedTime;
 }
@@ -383,7 +419,8 @@ let createCounter = 0;
 
 // Обработчик команды /create
 bot.onText(/\/create/, (msg) => {
-  const chatId = msg.chat.id
+  const chatId = msg.chat.id;
+  startFindingTime = new Date();
 
   if (startCounter !== 0 && hasMinus === false) {
     handleStep1(msg);
@@ -401,7 +438,7 @@ bot.onText(/\/create/, (msg) => {
       description: ''
     };
 
-    console.log(`Создание нового поста...`);
+    console.log(`Создание нового итога...`);
   } else if (hasMinus === true) {
     bot.sendMessage(chatId, `*${'Ты получил минус. Подумай о будущем, закончи сессию командой /stop.\n\nИ ответь на вопрос выше, пожалуйста.'}*`, options = { parse_mode: 'Markdown' });
   } else {
@@ -466,6 +503,7 @@ bot.onText(/\/statistic/, (msg) => {
 bot.on('callback_query', (callbackQuery) => {
   const step = Object.keys(selections).filter((key) => selections[key] === '').length;
 
+  // если сессия не начата, нужно сказать начать. Нельзя выбрать какой-то пункт, если сессия не начата.
   if (step === 4) {
     handleStep2(callbackQuery);
   } else if (step === 3) {
