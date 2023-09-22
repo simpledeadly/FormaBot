@@ -378,10 +378,10 @@ const handleStep4 = (callbackQuery) => {
       };
 
       const cryptoChannelId = '-1001904496260'; // ID of crypto-trades
-      const channelId = '-1001875103729'; // ID of my BO trades channel
-      bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')); // Send created post to channel
+      // const channelId = '-1001875103729'; // ID of my BO trades channel
+      // bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')); // Send created post to channel
       bot.sendMediaGroup(chatId, media, options).then(() => {
-        findingTimeIncrement++; // for working branch
+        // findingTimeIncrement++; // for working branch
         createCounterGlobal++;
         createCounter++;
 
@@ -446,7 +446,7 @@ let createCounter = 0;
 bot.onText(/\/create/, (msg) => {
   const chatId = msg.chat.id;
   startFindingTime = new Date();
-  // findingTimeIncrement++; // for dev branch
+  findingTimeIncrement++; // for dev branch
 
   if (startCounter !== 0 && hasMinus === false) {
     handleStep1(msg);
