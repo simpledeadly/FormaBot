@@ -505,7 +505,7 @@ bot.onText(/\/stop/, (msg) => {
     } else {
       setTimeout(() => {
         // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*,\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ fulfillingTimeElements }*`, options);
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifотference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ allFindingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nВремя отработки входа:\n*${ allFulfillingTimes.join(extraInfoAboutFinishedTrade()) }*`, options);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ allFindingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nВремя отработки входа:\n*${ allFulfillingTimes.join(extraInfoAboutFinishedTrade()) }*`, options);
       }, 250);
     };
 
