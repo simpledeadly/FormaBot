@@ -433,7 +433,7 @@ bot.onText(/\/start/, (msg) => {
   
   bot.sendMessage(chatId, `*${'Вы начали сессию.'}*`, options = { parse_mode: 'Markdown' });
   setTimeout(() => {
-    bot.sendMessage(chatId, rules, options)
+    bot.sendMessage(chatId, rules, options);
   }, 250);
 
   // createCounter = 0;
