@@ -425,7 +425,7 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   startTime = new Date();
   
-  const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n    _${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
+  const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n    _${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
 
   options = { parse_mode: 'Markdown' }
   startCounter++
@@ -500,12 +500,12 @@ bot.onText(/\/stop/, (msg) => {
 
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*,\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ allFindingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nВремя отработки входа:\n*${ allFulfillingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nХорошая получилась сессия!`, options);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ allFindingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nВремя отработки входа:\n*${ allFulfillingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nХорошая получилась сессия!`, options);
       }, 250);
     } else {
       setTimeout(() => {
         // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*,\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ fulfillingTimeElements }*`, options);
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*,\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ allFindingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nВремя отработки входа:\n*${ allFulfillingTimes.join(extraInfoAboutFinishedTrade()) }*`, options);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifотference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ allFindingTimes.join(extraInfoAboutFinishedTrade()) }*\n\nВремя отработки входа:\n*${ allFulfillingTimes.join(extraInfoAboutFinishedTrade()) }*`, options);
       }, 250);
     };
 
