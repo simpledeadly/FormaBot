@@ -1,24 +1,11 @@
-const TelegramBot = require('node-telegram-bot-api');
-const token = '6067868221:AAGdT7AdMod-qBEcNaqMk3KSfYSCQm8hnL8';
+const { handleStep1 } = require('./steps/step1.js');
+const { handleStep2 } = require('./steps/step2.js');
+const { handleStep3 } = require('./steps/step3.js');
+const { handleStep4 } = require('./steps/step4.js');
 
-console.log('Запущено!')
-
-const bot = new TelegramBot(token, { polling: true });
-
-let selections = {
-  currencyPair: '',
-  outcome: '',
-  attempt: '',
-  end: '',
-  messageId: null
-};
-
-let sele = {
-  comment: '',
-  description: ''
-}
-
-let screenshots = [];
+const { formatMilliseconds } = require('./helpers/helpers.js');
+let { bot, selections, sele, screenshots, allFindingTimes, allFulfillingTimes } = require('./lib/variables.js');
+console.log('Запущено!');
 
 bot.on('message', (callbackQuery) => {
   if (callbackQuery.photo) {
@@ -57,7 +44,9 @@ bot.on('message', (callbackQuery) => {
         options,
         selections.messageId
       );
-    } else {}
+    } else {
+      console.log('not working because:', selections.currencyPair, 'NOTHING HERE!');
+    }
   } else {}
 });
 
@@ -143,7 +132,7 @@ bot.on('message', (callbackQuery) => {
     setTimeout(() =>
       bot.sendMessage(
         chatId,
-        `Ты точно наделаешь ошибок, поэтому прошу тебя, ОСТАНОВИ СЕССИЮ. Сохрани свой баланс, нервы и ВРЕМЯ.\n\nНе забывавай, ты можешь поторговать завтра с повышенным объёмом!`,
+        `Ты точно наделаешь ошибок, поэтому прошу тебя, ОСТАНОВИСЬ. Сохрани свой баланс, нервы и ВРЕМЯ.\n\nНе забывавай, ты можешь поторговать завтра с повышенным объёмом!`,
         options = { parse_mode: 'Markdown' }
       ), 1000
     );
@@ -155,268 +144,8 @@ bot.on('message', (callbackQuery) => {
         options = { parse_mode: 'Markdown' }
       ), 5000
     );
-  }
+  };
 });
-
-const handleStep1 = (msg) => {
-  const chatId = msg.chat.id;
-
-  const options = {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: '🇦🇺 AUD/CAD 🇨🇦', callback_data: 'AUD/CAD 🇦🇺/🇨🇦' },
-          { text: '🇦🇺 AUD/CHF 🇨🇭', callback_data: 'AUD/CHF 🇦🇺/🇨🇭' },
-          { text: '🇦🇺 AUD/JPY 🇯🇵', callback_data: 'AUD/JPY 🇦🇺/🇯🇵' }
-        ],
-        [
-          { text: '🇦🇺 AUD/USD 🇺🇸', callback_data: 'AUD/USD 🇦🇺/🇺🇸' },
-          { text: '🇨🇦 CAD/CHF 🇨🇭', callback_data: 'CAD/CHF 🇨🇦/🇨🇭' },
-          { text: '🇨🇦 CAD/JPY 🇯🇵', callback_data: 'CAD/JPY 🇨🇦/🇯🇵' }
-        ],
-        [
-          { text: '🇨🇭 CHF/JPY 🇯🇵', callback_data: 'CHF/JPY 🇨🇭/🇯🇵' },
-          { text: '🇪🇺 EUR/AUD 🇦🇺', callback_data: 'EUR/AUD 🇪🇺/🇦🇺' },
-          { text: '🇪🇺 EUR/CAD 🇨🇦', callback_data: 'EUR/CAD 🇪🇺/🇨🇦' }
-        ],
-        [
-          { text: '🇪🇺 EUR/CHF 🇨🇭', callback_data: 'EUR/CHF 🇪🇺/🇨🇭' },
-          { text: '🇪🇺 EUR/GBP 🇬🇧', callback_data: 'EUR/GBP 🇪🇺/🇬🇧' },
-          { text: '🇪🇺 EUR/JPY 🇯🇵', callback_data: 'EUR/JPY 🇪🇺/🇯🇵' }
-        ],
-        [
-          { text: '🇪🇺 EUR/USD 🇺🇸', callback_data: 'EUR/USD 🇪🇺/🇺🇸' },
-          { text: '🇬🇧 GBP/AUD 🇦🇺', callback_data: 'GBP/AUD 🇬🇧/🇦🇺' },
-          { text: '🇬🇧 GBP/CAD 🇨🇦', callback_data: 'GBP/CAD 🇬🇧/🇨🇦' }
-        ],
-        [
-          { text: '🇬🇧 GBP/CHF 🇨🇭', callback_data: 'GBP/CHF 🇬🇧/🇨🇭' },
-          { text: '🇬🇧 GBP/JPY 🇯🇵', callback_data: 'GBP/JPY 🇬🇧/🇯🇵' },
-          { text: '🇬🇧 GBP/USD 🇺🇸', callback_data: 'GBP/USD 🇬🇧/🇺🇸' }
-        ],
-        [
-          { text: '🇺🇸 USD/CAD 🇨🇦', callback_data: 'USD/CAD 🇺🇸/🇨🇦' },
-          { text: '🇺🇸 USD/CHF 🇨🇭', callback_data: 'USD/CHF 🇺🇸/🇨🇭' },
-          { text: '🇺🇸 USD/JPY 🇯🇵', callback_data: 'USD/JPY 🇺🇸/🇯🇵' }
-        ],
-        [{ text: '🇺🇸 USD/CNH 🇨🇳', callback_data: 'USD/CNH 🇺🇸/🇨🇳' }]
-      ]
-    },
-    parse_mode: 'Markdown'
-  };
-
-  bot.sendMessage(
-    chatId,
-    `_${'Для того, чтобы добавить итог сделки выполните несколько действий'}_.\n\n*${'Шаг 1: Выберите валютную пару'}*`,
-    options
-  );
-};
-
-var findingTimeIncrement = 0;
-var findingTimeElements = [];
-var allFindingTimes = [];
-
-const handleStep2 = (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const currencyPair = callbackQuery.data;
-
-  selections.currencyPair = currencyPair;
-  console.log('Валютная пара:', currencyPair);
-
-  if (selections.currencyPair !== '') {
-    endFindingTime = new Date(); // and start fulfilling the trade.
-    const timeDifferenceFinding = endFindingTime - startFindingTime;
-    var formattedFindingTime = formatToMinutes(timeDifferenceFinding);
-
-    allFindingTimes.push(formattedFindingTime);
-  };
-
-  options = { parse_mode: 'Markdown' };
-
-  bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, options);
-  setTimeout(() => {
-    bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, options);
-  }, 250)
-};
-
-const handleStep3 = (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const attempt = callbackQuery.data;
-
-  selections.attempt = attempt;
-  console.log('Попытка:', attempt);
-
-  const options = {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: '🚫 Пропустил', callback_data: 'ПРОПУЩЕНО 🚫' },
-          { text: '🛠 Отменили', callback_data: 'ОТМЕНЕНО 🛠' },
-          { text: '⚡️ Импульс', callback_data: 'ПЛЮС ⚡️' }
-        ],
-        [
-          { text: '💢 Ошибся', callback_data: 'МИНУС 💢' },
-          { text: '❌ Рынок', callback_data: 'МИНУС ❌' },
-          { text: '💥 Вау', callback_data: 'ПЛЮС 💥' }
-        ],
-        [
-          { text: '❤️‍🔥 Повезло', callback_data: 'ПЛЮС ❤️‍🔥' },
-          { text: '✅ Плюс', callback_data: 'ПЛЮС ✅' },
-          { text: '🚀 Уверенно', callback_data: 'ПЛЮС 🚀' }
-        ]
-      ]
-    },
-    parse_mode: 'Markdown'
-  };
-
-  bot.sendMessage(
-    chatId,
-    `*${'Шаг 4: Выберите итог сделки'}*`,
-    options
-  );
-};
-
-let hasMinus = false;
-let pluses = 0;
-
-let fulfillingTimeIncrement = 0;
-let fulfillingTimeElements = [];
-
-let allFulfillingTimes = [];
-
-const handleStep4 = (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const end = callbackQuery.data;
-
-  endFulfilling = new Date();
-  const formattedDifferenceFulfilling = endFulfilling - endFindingTime;
-  const formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling);
-
-  allFulfillingTimes.push(formattedFulfillingTime);
-
-  // fulfillingTimeIncrement++;
-  // let key = 'fulfilling' + fulfillingTimeIncrement;
-
-  // const fulfillingTimeElement = {
-  //   [key]: formattedFulfillingTime
-  // };
-
-  // fulfillingTimeElements.push(fulfillingTimeElement);
-  // console.log('Все элементы нового массива со временем отработки сделки:', fulfillingTimeElements);
-
-  selections.end = end;
-  console.log('Итог сделки:', end);
-  
-  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\nОписание:\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\nКомментарий:\n_${ sele.comment }_` : '' }`;
-  const options = { parse_mode: 'Markdown' };
-
-  bot.sendMessage(chatId, `_${'Отправлено в канал:'}_`, options).then(() => {
-    if (screenshots.length > 0) {
-      const media = screenshots.map((fileId, index) => {
-        const mediaOptions = {
-          type: 'photo',
-          media: fileId,
-          parse_mode: 'Markdown'
-        };
-
-        if (index === 0) {
-          mediaOptions.caption = message;
-        }
-
-        return mediaOptions;
-      });
-
-      if (
-          end === 'ПЛЮС 🚀' ||
-          end === 'ПЛЮС ✅' ||
-          end === 'ПЛЮС 💥' ||
-          end === 'ПЛЮС ⚡️' ||
-          end === 'ПЛЮС ❤️‍🔥'
-        ) {
-          plusesGlobal++
-          pluses++
-        }
-
-      if (end === 'ОТМЕНЕНО 🛠') {
-        setTimeout(() =>
-          bot.sendMessage(
-            chatId,
-            `Тебе отменили сделку. Успокойся и продолжай! :)`,
-            options
-          ), 1000
-        );
-
-        cancelles++
-      }
-
-      if (end === 'МИНУС 💢' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
-        setTimeout(() =>
-          bot.sendMessage(
-            chatId,
-            `Ты получил минус из-за ошибки. Подумай пару минут, вспомни 3-е правило, подумай над причиной такого исхода и закончи предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности)'}_`,
-            options
-          ), 1000
-        );
-        hasMinus = true
-      }
-  
-      if (end === 'МИНУС ❌' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
-        setTimeout(() =>
-          bot.sendMessage(
-            chatId,
-            `Ты получил минус из-за рынка. Если ты действительно уверен, что ты не наделал ошибок, то закончи это предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности, рынка)'}_`,
-            options
-          ), 1000
-        );
-        hasMinus = true
-      }
-
-      if (selections.attempt !== 'ОСНОВА') {
-        setTimeout(() => {
-          bot.sendMessage(chatId, `*${`Ушло времени на отработку: ${ formattedFulfillingTime }`}*`, options);
-        }, 1000)
-      };
-
-      const cryptoChannelId = '-1001904496260'; // ID of crypto-trades
-      // const channelId = '-1001875103729'; // ID of my BO trades channel
-      // bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')); // Send created post to channel
-      bot.sendMediaGroup(chatId, media, options).then(() => {
-        // findingTimeIncrement++; // for working branch
-        createCounterGlobal++;
-        createCounter++;
-
-        console.log('Итог создан.');
-      });
-    } else {
-      bot.sendMessage(chatId, `*${'Прикрепите скриншоты.'}*`, options);
-      console.log('Скриншоты не прикреплены.');
-    };
-  });
-};
-
-function formatMilliseconds(ms) {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-
-  const formattedTime = `${ hours } ${'часов'} ${ minutes } ${'минут'}`; // добавить определение кол-ва минут, правильно записывать форму слова.
-
-  return formattedTime;
-}
-
-function formatToMinutes(ms) {
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  let formattedTime = 0; // добавить определение кол-ва минут, правильно записывать форму слова.
-
-  if (minutes === 1) {
-    formattedTime = `${ minutes } ${'минута'}`;
-  } else if (minutes === 2 || minutes === 3 || minutes === 4) {
-    formattedTime = `${ minutes } ${'минуты'}`;
-  } else {
-    formattedTime = `${ minutes } ${'минут'}`;
-  }
-
-  return formattedTime;
-}
 
 let startCounter = 0;
 
@@ -442,14 +171,17 @@ bot.onText(/\/start/, (msg) => {
 
 let createCounter = 0;
 
+let hasMinus = false;
+let pluses = 0;
+
 // Обработчик команды /create
 bot.onText(/\/create/, (msg) => {
   const chatId = msg.chat.id;
   startFindingTime = new Date();
-  findingTimeIncrement++; // for dev branch
+  // findingTimeIncrement++; // for dev branch
 
   if (startCounter !== 0 && hasMinus === false) {
-    handleStep1(msg);
+    handleStep1(msg)
 
     selections = {
       currencyPair: '',
@@ -483,7 +215,7 @@ bot.onText(/\/stop/, (msg) => {
   if (startCounter !== 0) {
     const endTime = new Date();
     const timeDifference = endTime - startTime;
-    const formattedDifference = formatMilliseconds(timeDifference)
+    const formattedDifference = formatMilliseconds(timeDifference);
 
     options = { parse_mode: 'Markdown' };
     console.log('Сессия закончена!', new Date());
@@ -551,7 +283,6 @@ bot.onText(/\/statistic/, (msg) => {
 bot.on('callback_query', (callbackQuery) => {
   const step = Object.keys(selections).filter((key) => selections[key] === '').length;
 
-  // если сессия не начата, нужно сказать начать. Нельзя выбрать какой-то пункт, если сессия не начата.
   if (step === 4) {
     handleStep2(callbackQuery);
   } else if (step === 3) {
