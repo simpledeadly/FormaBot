@@ -488,9 +488,6 @@ bot.onText(/\/stop/, (msg) => {
     options = { parse_mode: 'Markdown' };
     console.log('Сессия закончена!', new Date());
 
-    // let neww = allFindingTimes.concat(allFulfillingTimes);
-    // console.log(neww)
-
     // С помощью этой функции можно дополнять информацию по итогу сделки в итоговой статистике (стата после "/stop").
     const extraInfoAboutFinishedTrade = () => {
       // if () {};
