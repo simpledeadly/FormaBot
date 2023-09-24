@@ -537,10 +537,6 @@ bot.onText(/\/stop/, (msg) => {
       
       return modifiedViewOfArray;
     };
-
-    const checking = () => {
-
-    };
     
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
