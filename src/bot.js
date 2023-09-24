@@ -549,7 +549,7 @@ bot.onText(/\/stop/, (msg) => {
     } else {
       setTimeout(() => {
         console.log(findingTimeElements, fulfillingTimeElements);
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements !== [] ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements !== [] ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '\n\nНет ни одного законченного итога.' }`, optionsWithStatistic);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }`, optionsWithStatistic);
       }, 250);
     };
 
