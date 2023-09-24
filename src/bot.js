@@ -357,11 +357,13 @@ const handleStep4 = (callbackQuery) => {
           bot.sendMessage(
             chatId,
             `Тебе отменили сделку. Успокойся и продолжай! :)`,
-            optionsWithCreate
-          ), 1000
+            optionsWithCreateAndStop
+          ), 500
         );
 
         cancelles++;
+        // findingTimeIncrement++;
+        // fulfillingTimeIncrement++;
       };
 
       if (end === 'МИНУС 💢' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
@@ -412,10 +414,10 @@ const handleStep4 = (callbackQuery) => {
         console.log('Итог создан.');
       });
     } else {
-      allFindingTimes.pop();
-      allFulfillingTimes.pop();
-      findingTimeElements.pop();
-      fulfillingTimeElements.pop();
+      // allFindingTimes.pop();
+      // allFulfillingTimes.pop();
+      // findingTimeElements.pop();
+      // fulfillingTimeElements.pop();
 
       bot.sendMessage(chatId, `*${'Итог не создан.'}*`, parseMarkdown);
       console.log('Скриншоты не прикреплены.');
@@ -456,10 +458,10 @@ bot.onText(/\/start/, (msg) => {
   if (hasMinus === false) {
     startTime = new Date();
   
-    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n    _${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
+    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n_${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`;
   
-    startCounter++
-    console.log('Сессия начата!', startTime)
+    startCounter++;
+    console.log('Сессия начата!', startTime);
     
     bot.sendMessage(chatId, `*${'Вы начали сессию.'}*`, parseMarkdown);
     setTimeout(() => {
@@ -485,7 +487,7 @@ bot.onText(/\/create/, (msg) => {
       allFindingTimes.pop();
       findingTimeElements.pop();
   
-      console.log('Ну, должно быть на один меньше...');
+      console.log('Ну, должно быть на один меньше...', findingTimeElements);
     };
 
     selections = {
@@ -522,7 +524,7 @@ bot.onText(/\/stop/, (msg) => {
       allFindingTimes.pop();
       findingTimeElements.pop();
   
-      console.log('Ну, должно быть на один меньше...');
+      console.log('Ну, должно быть на один меньше...', findingTimeElements);
     };
 
     console.log('Сессия закончена!', new Date());
@@ -530,12 +532,16 @@ bot.onText(/\/stop/, (msg) => {
     // С помощью этой функции можно дополнять информацию по итогу сделки в итоговой статистике (стата после "/stop").
     const formattedArrayWithExtraInfo = (arr) => {
       // if () {};
-
+      
       const modifiedViewOfArray = JSON.stringify(arr).replace(/[\[\]{}[\]"[\]finding[\]fulfilling]/gm, '').replace(/:/gm, ': ').replace(/,/gm, '\n');
-
+      
       return modifiedViewOfArray;
     };
 
+    const checking = () => {
+
+    };
+    
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
         bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*\n\nХорошая получилась сессия!`, optionsWithStatistic);
@@ -546,24 +552,25 @@ bot.onText(/\/stop/, (msg) => {
       }, 250);
     } else {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements !== [] ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements !== [] ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }`, parseMarkdown);
+        console.log(findingTimeElements, fulfillingTimeElements);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements !== [] ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements !== [] ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '\n\nНет ни одного законченного итога.' }`, optionsWithStatistic);
       }, 250);
     };
 
     bot.sendMessage(chatId, `*${'Вы закончили сессию.'}*`, parseMarkdown);
 
-    pluses = 0;
-    startTime = null;
-    startCounter = 0;
-    createCounter = 0;
-    findingTimeIncrement = 1;
-    fulfillingTimeIncrement = 0;
     setTimeout(() => {
+      pluses = 0;
+      startTime = null;
+      startCounter = 0;
+      createCounter = 0;
+      findingTimeIncrement = 1;
+      fulfillingTimeIncrement = 0;
       allFindingTimes = [];
       allFulfillingTimes = [];
       findingTimeElements = [];
       fulfillingTimeElements = [];
-    }, 300)
+    }, 1000);
   } else if (hasMinus === true) {
     bot.sendMessage(chatId, `*${'Сессия уже закончена, подумай почему ты получил минус и отдохни!'}*`, parseMarkdown);
   } else {
