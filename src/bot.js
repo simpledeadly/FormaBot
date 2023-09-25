@@ -232,14 +232,16 @@ const handleStep2 = (callbackQuery) => {
   selections.currencyPair = currencyPair;
   console.log('Валютная пара:', currencyPair);
 
-  let key = 'finding' + findingTimeIncrement;
+  let key = 'Поиск' + findingTimeIncrement;
 
   if (selections.currencyPair !== '') {
     endFindingTime = new Date(); // and start fulfilling the trade.
     const timeDifferenceFinding = endFindingTime - startFindingTime;
     var formattedFindingTime = formatToMinutes(timeDifferenceFinding);
+    var asdff = formattedFindingTime.replace(/[ минут[\] минуты[\] минута]/gm, '');
+    let formattedFindingTimeForAverage = Number(asdff);
 
-    allFindingTimes.push(formattedFindingTime);
+    allFindingTimes.push(formattedFindingTimeForAverage);
   };
 
   const findingTimeElement = {
@@ -306,12 +308,14 @@ const handleStep4 = (callbackQuery) => {
 
   endFulfilling = new Date();
   const formattedDifferenceFulfilling = endFulfilling - endFindingTime;
-  const formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling);
+  var formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling);
+  var asdf = formattedFulfillingTime.replace(/[ минут[\] минуты[\] минута]/gm, null);
+  let formattedFulfillingTimeForAverage = parseInt(asdf);
 
-  allFulfillingTimes.push(formattedFulfillingTime);
+  allFulfillingTimes.push(formattedFulfillingTimeForAverage);
 
   fulfillingTimeIncrement++;
-  let key = 'fulfilling' + fulfillingTimeIncrement;
+  let key = 'Отработка' + fulfillingTimeIncrement;
 
   const fulfillingTimeElement = {
     [key]: formattedFulfillingTime
@@ -444,7 +448,7 @@ function formatToMinutes(ms) {
     formattedTime = `${ minutes } ${'минуты'}`;
   } else {
     formattedTime = `${ minutes } ${'минут'}`;
-  }
+  };
 
   return formattedTime;
 }
@@ -537,20 +541,80 @@ bot.onText(/\/stop/, (msg) => {
       
       return modifiedViewOfArray;
     };
+
+    const formattedArray = (arr, i) => {
+      // const mody = JSON.stringify(arr).replace(/[{}[\]h\/feading[\]'[\]"[\]ul]/gm, '').replace(/:/gm, ': ').replace(/,/gm, '\n');
+      let n = i - 1;
+
+      const mody = JSON.stringify(arr)
+        .replace(/[{}[\]h\/feading[\]'[\]"[\]ul]/gm, '')
+        .replace(/,/gm, '\n')
+        .replace(/[к][\d][:]/gm, 'к_ ')
+        .replace(/[а][\d][:]/gm, 'а_ ')
+        .replace(/[:][П]/gm, 'П')
+        .replace(/[:][О]/gm, 'О')
+        .replace(/:/gm, '\n')
+        .replace(/_/gm, ':')
+        .replace(/[к][:][ ][\d][ ][м][и][н][у][т]/gm, `к: *${ allFindingTimes[n] + ' ' + 'минут' }*`)
+        .replace(/[а][:][ ][\d][ ][м][и][н][у][т]/gm, `а: *${ allFulfillingTimes[n] + ' ' + 'минут' }*`)
+        .replace(/[\d][ ][с][д][е][л][к][а]/gm, `*${ i + ' ' + 'сделка' }*`);
+
+      // const mody = JSON.stringify(arr).replace(/[{}[\]'\/"]/gm, '').replace(/,/gm, '\n').replace('heading:', '');
+      // [{heading:'1 сделка',finding:{finding1:'0 минут'},fulfilling:{fulfilling1:'0 минут'}},{heading:'2 сделка',finding:{finding2:'0 минут'},fulfilling:{fulfilling2:'0 минут'}}]
+      // [{heading:'1 сделка',finding:{Поиск1:'0 минут'},fulfilling:{Отработка1:'0 минут'}},{heading:'2 сделка',finding:{Поиск2:'0 минут'},fulfilling:{Отработка2:'0 минут'}}]
+      
+      return mody;
+      // return `*${ mody }*`;
+    };
+
+    const showAllTrades = () => {
+      let trades = [];
+
+      for (var i = 0; i < allFindingTimes.length; i++) {
+        let n = i + 1;
+
+        const template = {
+          heading: n + ' сделка',
+          finding: findingTimeElements[i],
+          fulfilling: fulfillingTimeElements[i]
+        };
+        
+        trades.push(template);
+      };
+      console.log('trades:', trades);
+      
+      return formattedArray(trades, i);
+    };
+
+    const sum = (arr) => {
+      const stepOne = arr.reduce((partialSum, a) => partialSum + a, 0);
+      const stepTwo = stepOne / allFulfillingTimes.length;
+
+      return stepTwo;
+    };
+
+    const avgFinding = sum(allFindingTimes);
+    const avgFulfilling = sum(allFulfillingTimes);
+
+    console.log('avgFinding:', avgFinding);
+    console.log('avgFulfilling:', avgFulfilling);
     
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
         bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*\n\nХорошая получилась сессия!`, optionsWithStatistic);
-      }, 250);
+      }, 300);
     } else if (hasMinus === true) {
       setTimeout(() => {
         bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown);
-      }, 250);
+      }, 300);
     } else {
       setTimeout(() => {
         console.log(findingTimeElements, fulfillingTimeElements);
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }`, optionsWithStatistic);
-      }, 250);
+
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ showAllTrades() }`, optionsWithStatistic);
+        // bot.sendMessage(chatId, `*${ showAllTrades() }*`, optionsWithStatistic);
+        // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }\n\nСреднее время поиска: *${ avgFinding, 'минут' }*\nСреднее время отработки: *${ avgFulfilling, 'минут' }*`, optionsWithStatistic);
+      }, 300);
     };
 
     bot.sendMessage(chatId, `*${'Вы закончили сессию.'}*`, parseMarkdown);
