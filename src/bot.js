@@ -257,11 +257,15 @@ const handleStep2 = (callbackQuery) => {
   }, 250)
 };
 
+let attempts = [];
+
 const handleStep3 = (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const attempt = callbackQuery.data;
 
+  attempts.push(attempt);
   selections.attempt = attempt;
+  console.log('Попытки:', attempts);
   console.log('Попытка:', attempt);
 
   const options = {
@@ -278,7 +282,7 @@ const handleStep3 = (callbackQuery) => {
           { text: '💥 Вау', callback_data: 'ПЛЮС 💥' }
         ],
         [
-          { text: '❤️‍🔥 Повезло', callback_data: 'ПЛЮС ❤️‍🔥' },
+          { text: '♻️ Возврат', callback_data: 'ВОЗВРАТ ♻️' },
           { text: '✅ Плюс', callback_data: 'ПЛЮС ✅' },
           { text: '🚀 Уверенно', callback_data: 'ПЛЮС 🚀' }
         ]
@@ -302,6 +306,8 @@ let fulfillingTimeElements = [];
 
 let allFulfillingTimes = [];
 
+let endings = [];
+
 const handleStep4 = (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const end = callbackQuery.data;
@@ -324,7 +330,9 @@ const handleStep4 = (callbackQuery) => {
   fulfillingTimeElements.push(fulfillingTimeElement);
   console.log('Все элементы нового массива со временем отработки сделки:', fulfillingTimeElements);
 
+  endings.push(end);
   selections.end = end;
+  console.log('Итоги:', endings);
   console.log('Итог сделки:', end);
   
   const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\nОписание:\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\nКомментарий:\n_${ sele.comment }_` : '' }`;
@@ -366,8 +374,6 @@ const handleStep4 = (callbackQuery) => {
         );
 
         cancelles++;
-        // findingTimeIncrement++;
-        // fulfillingTimeIncrement++;
       };
 
       if (end === 'МИНУС 💢' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
@@ -411,23 +417,21 @@ const handleStep4 = (callbackQuery) => {
       // const channelId = '-1001875103729'; // ID of my BO trades channel
       // bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')); // Send created post to channel
       bot.sendMediaGroup(chatId, media, parseMarkdown).then(() => {
-        findingTimeIncrement++; // for working branch
+        findingTimeIncrement++;
         createCounterGlobal++;
         createCounter++;
 
         console.log('Итог создан.');
       });
     } else {
-      // allFindingTimes.pop();
-      // allFulfillingTimes.pop();
-      // findingTimeElements.pop();
-      // fulfillingTimeElements.pop();
 
       bot.sendMessage(chatId, `*${'Итог не создан.'}*`, parseMarkdown);
       console.log('Скриншоты не прикреплены.');
     };
   });
 };
+
+const findLastSymbol = txt => txt.toString().slice(-1);
 
 function formatMilliseconds(ms) {
   const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -439,12 +443,12 @@ function formatMilliseconds(ms) {
 }
 
 function formatToMinutes(ms) {
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const minutes = Math.floor(ms / 60000);
   let formattedTime = 0; // добавить определение кол-ва минут, правильно записывать форму слова.
 
-  if (minutes === 1) {
+  if (findLastSymbol(minutes) === 1 && minutes !== 11) {
     formattedTime = `${ minutes } ${'минута'}`;
-  } else if (minutes === 2 || minutes === 3 || minutes === 4) {
+  } else if ((findLastSymbol(minutes) === 2 && minutes !== 12) || (findLastSymbol(minutes) === 3 && minutes !== 13) || findLastSymbol(minutes) === 4 && minutes !== 14) {
     formattedTime = `${ minutes } ${'минуты'}`;
   } else {
     formattedTime = `${ minutes } ${'минут'}`;
@@ -482,7 +486,6 @@ let createCounter = 0;
 bot.onText(/\/create/, (msg) => {
   const chatId = msg.chat.id;
   startFindingTime = new Date();
-  // findingTimeIncrement++; // for dev branch
 
   if (startCounter !== 0) {
     handleStep1(msg);
@@ -533,18 +536,9 @@ bot.onText(/\/stop/, (msg) => {
 
     console.log('Сессия закончена!', new Date());
 
-    // С помощью этой функции можно дополнять информацию по итогу сделки в итоговой статистике (стата после "/stop").
-    const formattedArrayWithExtraInfo = (arr) => {
-      // if () {};
-      
-      const modifiedViewOfArray = JSON.stringify(arr).replace(/[\[\]{}[\]"[\]finding[\]fulfilling]/gm, '').replace(/:/gm, ': ').replace(/,/gm, '\n');
-      
-      return modifiedViewOfArray;
-    };
+    let trades = [];
 
     const formattedArray = (arr, i) => {
-      // const mody = JSON.stringify(arr).replace(/[{}[\]h\/feading[\]'[\]"[\]ul]/gm, '').replace(/:/gm, ': ').replace(/,/gm, '\n');
-      let n = i - 1;
 
       const mody = JSON.stringify(arr)
         .replace(/[{}[\]h\/feading[\]'[\]"[\]ul]/gm, '')
@@ -555,26 +549,19 @@ bot.onText(/\/stop/, (msg) => {
         .replace(/[:][О]/gm, 'О')
         .replace(/:/gm, '\n')
         .replace(/_/gm, ':')
-        .replace(/[к][:][ ][\d][ ][м][и][н][у][т]/gm, `к: *${ allFindingTimes[n] + ' ' + 'минут' }*`)
-        .replace(/[а][:][ ][\d][ ][м][и][н][у][т]/gm, `а: *${ allFulfillingTimes[n] + ' ' + 'минут' }*`)
-        .replace(/[\d][ ][с][д][е][л][к][а]/gm, `*${ i + ' ' + 'сделка' }*`);
-
-      // const mody = JSON.stringify(arr).replace(/[{}[\]'\/"]/gm, '').replace(/,/gm, '\n').replace('heading:', '');
-      // [{heading:'1 сделка',finding:{finding1:'0 минут'},fulfilling:{fulfilling1:'0 минут'}},{heading:'2 сделка',finding:{finding2:'0 минут'},fulfilling:{fulfilling2:'0 минут'}}]
+        .replace(/-/gm, ', ');
+        
       // [{heading:'1 сделка',finding:{Поиск1:'0 минут'},fulfilling:{Отработка1:'0 минут'}},{heading:'2 сделка',finding:{Поиск2:'0 минут'},fulfilling:{Отработка2:'0 минут'}}]
-      
+
       return mody;
-      // return `*${ mody }*`;
     };
 
     const showAllTrades = () => {
-      let trades = [];
-
       for (var i = 0; i < allFindingTimes.length; i++) {
         let n = i + 1;
 
         const template = {
-          heading: n + ' сделка',
+          heading: `*${ n + ' сделка' + '_' + ' ' + attempts[i] + '-' + endings[i] }*`,
           finding: findingTimeElements[i],
           fulfilling: fulfillingTimeElements[i]
         };
@@ -601,17 +588,17 @@ bot.onText(/\/stop/, (msg) => {
     
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*\n\nХорошая получилась сессия!`, optionsWithStatistic);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ avgFinding + ' ' + 'минут' }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ avgFulfilling + ' ' + 'минут' }*` : '' }\n\n_${'Хорошая получилась сессия!'}_`, optionsWithStart);
       }, 300);
     } else if (hasMinus === true) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ avgFinding + ' ' + 'минут' }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ avgFulfilling + ' ' + 'минут' }*` : '' }\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown);
       }, 300);
     } else {
       setTimeout(() => {
         console.log(findingTimeElements, fulfillingTimeElements);
 
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ showAllTrades() }`, optionsWithStatistic);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ avgFinding + ' ' + 'минут' }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ avgFulfilling + ' ' + 'минут' }*` : '' }`, optionsWithStart);
         // bot.sendMessage(chatId, `*${ showAllTrades() }*`, optionsWithStatistic);
         // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }\n\nСреднее время поиска: *${ avgFinding, 'минут' }*\nСреднее время отработки: *${ avgFulfilling, 'минут' }*`, optionsWithStatistic);
       }, 300);
@@ -626,6 +613,8 @@ bot.onText(/\/stop/, (msg) => {
       createCounter = 0;
       findingTimeIncrement = 1;
       fulfillingTimeIncrement = 0;
+      endings = [];
+      attempts = [];
       allFindingTimes = [];
       allFulfillingTimes = [];
       findingTimeElements = [];
@@ -675,32 +664,32 @@ bot.on('callback_query', (callbackQuery) => {
 bot.onText(/\/test/, (msg) => {
   const chatId = msg.chat.id
 
-  bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
+//   bot.on('message', (msg) => {
+//     const chatId = msg.chat.id;
+//     const text = msg.text;
   
-    switch (text) {
-      case '/start':
-        // bot.sendMessage(chatId, 'Создание поста');
-        break;
-      // case '/test':
-        // bot.sendMessage(chatId, 'Переход в режим разработки...');
-        // break;
-      // default:
-      //   bot.sendMessage(chatId, 'Неизвестная команда');
-      //   break;
-    }
-  });
+//     switch (text) {
+//       case 'alah':
+//         bot.sendMessage(chatId, 'Ты не баран!');
+//         break;
+//       case '/create':
+//         bot.sendMessage(chatId, 'Переход в режим разработки...');
+//         break;
+//       case '/stop':
+//         // 
+//         break;
+//       case '/statistic':
+//         // 
+//         break;
+//     }
+//   });
 
   bot.sendMessage(
     chatId,
     `*${'Здень пока ничего нет! 🚧'}*`,
     optionsWithStart
   );
-
-  console.log(`Команда находится в разработке...`);
 });
-
 
 bot.on('polling_error', (error) => {
   console.error('Ошибка при получении обновлений:', error);
