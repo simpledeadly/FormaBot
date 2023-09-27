@@ -335,7 +335,7 @@ const handleStep4 = (callbackQuery) => {
   console.log('Итоги:', endings);
   console.log('Итог сделки:', end);
   
-  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\nОписание:\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\nКомментарий:\n_${ sele.comment }_` : '' }`;
+  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\n*${'Описание:'}*\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\n*${'Комментарий:'}*\n_${ sele.comment }_` : '' }`;
 
   bot.sendMessage(chatId, `_${'Отправлено в канал:'}_`, parseMarkdown).then(() => {
     if (screenshots.length > 0) {
@@ -411,7 +411,9 @@ const handleStep4 = (callbackQuery) => {
           bot.sendMessage(chatId, `*${`Ушло времени на отработку: ${ formattedFulfillingTime }`}*`, optionsWithCreateAndStop);
         }, 500);
       } else {
-        bot.sendMessage(chatId, `*${'Нажмите кнопки, под клавиатурой'}*`, optionsWithCreateAndStop);
+        setTimeout(() => {
+          bot.sendMessage(chatId, `*${'Нажмите кнопки, под клавиатурой'}*`, optionsWithCreateAndStop);
+        }, 500);
       };
 
       // const channelId = '-1001875103729'; // ID of my BO trades channel
@@ -431,24 +433,34 @@ const handleStep4 = (callbackQuery) => {
   });
 };
 
-const findLastSymbol = txt => txt.toString().slice(-1);
+const roundUp = (num, precision) => {
+  precision = Math.pow(10, precision);
+
+  return Math.ceil(num * precision) / precision;
+};
+
+function findLastSymbol(txt) {
+  const mapa = txt.toString().slice(-1);
+  
+  return mapa;
+};
 
 function formatMilliseconds(ms) {
   const hours = Math.floor(ms / (1000 * 60 * 60));
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
 
-  const formattedTime = `${ hours } ${'часов'} ${ minutes } ${'минут'}`; // добавить определение кол-ва минут, правильно записывать форму слова.
+  const formattedTime = `${ hours } ${'часов'} ${ addMinutes(minutes, 0) }`;
 
   return formattedTime;
-}
+};
 
 function formatToMinutes(ms) {
   const minutes = Math.floor(ms / 60000);
   let formattedTime = 0; // добавить определение кол-ва минут, правильно записывать форму слова.
 
-  if (findLastSymbol(minutes) === 1 && minutes !== 11) {
+  if (findLastSymbol(minutes) === '1' && minutes !== 11) {
     formattedTime = `${ minutes } ${'минута'}`;
-  } else if ((findLastSymbol(minutes) === 2 && minutes !== 12) || (findLastSymbol(minutes) === 3 && minutes !== 13) || findLastSymbol(minutes) === 4 && minutes !== 14) {
+  } else if ((findLastSymbol(minutes) === '2' && minutes !== 12) || (findLastSymbol(minutes) === '3' && minutes !== 13) || findLastSymbol(minutes) === '4' && minutes !== 14) {
     formattedTime = `${ minutes } ${'минуты'}`;
   } else {
     formattedTime = `${ minutes } ${'минут'}`;
@@ -456,6 +468,21 @@ function formatToMinutes(ms) {
 
   return formattedTime;
 }
+
+function addMinutes(mn, precision) {
+  let withMinutes;
+  const roundedMinutes = roundUp(mn, precision);
+  
+  if (findLastSymbol(roundedMinutes) === '1' && roundedMinutes !== 11) {
+    withMinutes = `${ roundedMinutes } ${'минута'}`;
+  } else if ((findLastSymbol(roundedMinutes) === '2' && roundedMinutes !== 12) || (findLastSymbol(roundedMinutes) === '3' && roundedMinutes !== 13) || findLastSymbol(roundedMinutes) === '4' && roundedMinutes !== 14) {
+    withMinutes = `${ roundedMinutes } ${'минуты'}`;
+  } else {
+    withMinutes = `${ roundedMinutes } ${'минут'}`;
+  };
+
+  return withMinutes;
+};
 
 let startCounter = 0;
 
@@ -525,7 +552,7 @@ bot.onText(/\/stop/, (msg) => {
   if (startCounter !== 0) {
     const endTime = new Date();
     const timeDifference = endTime - startTime;
-    const formattedDifference = formatMilliseconds(timeDifference)
+    const formattedDifference = formatMilliseconds(timeDifference);
 
     if (selections.currencyPair !== '' && selections.attempt === '') {
       allFindingTimes.pop();
@@ -544,7 +571,9 @@ bot.onText(/\/stop/, (msg) => {
         .replace(/[{}[\]h\/feading[\]'[\]"[\]ul]/gm, '')
         .replace(/,/gm, '\n')
         .replace(/[к][\d][:]/gm, 'к_ ')
+        .replace(/[к][\d][\d][:]/gm, 'к_ ')
         .replace(/[а][\d][:]/gm, 'а_ ')
+        .replace(/[а][\d][\d][:]/gm, 'а_ ')
         .replace(/[:][П]/gm, 'П')
         .replace(/[:][О]/gm, 'О')
         .replace(/:/gm, '\n')
@@ -588,18 +617,21 @@ bot.onText(/\/stop/, (msg) => {
     
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ avgFinding + ' ' + 'минут' }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ avgFulfilling + ' ' + 'минут' }*` : '' }\n\n_${'Хорошая получилась сессия!'}_`, optionsWithStart);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Хорошая получилась сессия!'}_`, optionsWithStart);
       }, 300);
     } else if (hasMinus === true) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ avgFinding + ' ' + 'минут' }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ avgFulfilling + ' ' + 'минут' }*` : '' }\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown);
       }, 300);
     } else {
+      const templa = `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }`;
+
       setTimeout(() => {
         console.log(findingTimeElements, fulfillingTimeElements);
 
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ avgFinding + ' ' + 'минут' }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ avgFulfilling + ' ' + 'минут' }*` : '' }`, optionsWithStart);
-        // bot.sendMessage(chatId, `*${ showAllTrades() }*`, optionsWithStatistic);
+        // father's chat id is: ...
+        // bot.sendMessage(fatherChatId, templa, optionsWithStart);
+        bot.sendMessage(chatId, templa, optionsWithStart);
         // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }\n\nСреднее время поиска: *${ avgFinding, 'минут' }*\nСреднее время отработки: *${ avgFulfilling, 'минут' }*`, optionsWithStatistic);
       }, 300);
     };
