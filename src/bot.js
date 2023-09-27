@@ -1,5 +1,5 @@
-const TelegramBot = require('node-telegram-bot-api');
-const token = '6067868221:AAGdT7AdMod-qBEcNaqMk3KSfYSCQm8hnL8';
+const TelegramBot = require('node-telegram-bot-api')
+const token = '6067868221:AAGdT7AdMod-qBEcNaqMk3KSfYSCQm8hnL8'
 
 const {
   parseMarkdown,
@@ -8,11 +8,11 @@ const {
   optionsWithCreate,
   optionsWithStatistic,
   optionsWithCreateAndStop
-} = require('./lib/variables.js');
+} = require('./lib/variables.js')
 
 console.log('Запущено!')
 
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, { polling: true })
 
 let selections = {
   currencyPair: '',
@@ -20,31 +20,31 @@ let selections = {
   attempt: '',
   end: '',
   messageId: null
-};
+}
 
 let sele = {
   comment: '',
   description: ''
-};
+}
 
-let screenshots = [];
+let screenshots = []
 
 bot.on('message', (callbackQuery) => {
   if (callbackQuery.photo) {
-    const fileId = callbackQuery.photo[callbackQuery.photo.length - 1].file_id;
-    const chatId = callbackQuery.chat.id;
-    const descriptionOfEntry = callbackQuery.caption;
+    const fileId = callbackQuery.photo[callbackQuery.photo.length - 1].file_id
+    const chatId = callbackQuery.chat.id
+    const descriptionOfEntry = callbackQuery.caption
 
     if (sele.description === '' && descriptionOfEntry !== undefined) {
-      sele.description = descriptionOfEntry;
+      sele.description = descriptionOfEntry
 
-      setTimeout(() => console.log(`Описание входа: ${ descriptionOfEntry }`), 500);
+      setTimeout(() => console.log(`Описание входа: ${ descriptionOfEntry }`), 500)
     } else if (sele.description === '' && descriptionOfEntry === '') {
-      sele.description = '';
-    };
+      sele.description = ''
+    }
     
-    screenshots.push(fileId);
-    console.log(`Скриншот сохранен: ${ fileId }`);
+    screenshots.push(fileId)
+    console.log(`Скриншот сохранен: ${ fileId }`)
 
     if (screenshots.length > 1 && screenshots.length < 3 && selections.currencyPair) {
       const options = {
@@ -58,20 +58,20 @@ bot.on('message', (callbackQuery) => {
           ]
         },
         parse_mode: 'Markdown'
-      };
+      }
   
       bot.sendMessage(
         chatId,
         `*${'Шаг 3: Выберите с какой попытки сделка была закончена'}*\n${'(Можно добавить комментарий)'}`,
         options,
         selections.messageId
-      );
+      )
     } else {}
   } else {}
-});
+})
 
 bot.on('message', (callbackQuery) => {
-  const chatId = callbackQuery.chat.id;
+  const chatId = callbackQuery.chat.id
 
   if (
     callbackQuery.text
@@ -83,12 +83,12 @@ bot.on('message', (callbackQuery) => {
     && callbackQuery.text !== '/test'
     && callbackQuery.text !== '/statistic'
     ) {
-    const comment = callbackQuery.text;
+    const comment = callbackQuery.text
     
-    sele.comment = comment;
-    console.log('Комментарий:', comment);
+    sele.comment = comment
+    console.log('Комментарий:', comment)
 
-    bot.sendMessage(chatId, `*${'Комментарий обновлён'}*`, parseMarkdown);
+    bot.sendMessage(chatId, `*${'Комментарий обновлён'}*`, parseMarkdown)
   }
 
   const mistake1 = 'Я получил минус из-за спешки.'
@@ -96,14 +96,14 @@ bot.on('message', (callbackQuery) => {
   const immistake1 = 'Я получил минус из-за рынка.'
 
   if (callbackQuery.text === mistake1) {
-    const chatId = callbackQuery.chat.id;
+    const chatId = callbackQuery.chat.id
     setTimeout(() =>
       bot.sendMessage(
         chatId,
         `Если ты получил минус из-за спешки, то успокойся. И закончи сессию.`,
         parseMarkdown
       ), 2000
-    );
+    )
     
     setTimeout(() =>
       bot.sendMessage(
@@ -111,9 +111,9 @@ bot.on('message', (callbackQuery) => {
         `_${'Закончишь? 🤨'}_`,
         parseMarkdown
       ), 5000
-    );
+    )
   } else if (callbackQuery.text === mistake2) {
-    const chatId = callbackQuery.chat.id;
+    const chatId = callbackQuery.chat.id
 
     setTimeout(() =>
       bot.sendMessage(
@@ -121,7 +121,7 @@ bot.on('message', (callbackQuery) => {
         `Если ты получил минус из-за невнимательности, то тебе нужно *${'закончить сессию ПРЯМО СЕЙЧАС.'}*\n\nНе переживай, завтра повысишь сумму! 😉`,
         parseMarkdown
       ), 4000
-    );
+    )
 
     setTimeout(() =>
       bot.sendMessage(
@@ -129,9 +129,9 @@ bot.on('message', (callbackQuery) => {
         `_${'Закончишь? 🙂'}_`,
         parseMarkdown
       ), 7000
-    );
+    )
   } else if (callbackQuery.text === immistake1) {
-    const chatId = callbackQuery.chat.id;
+    const chatId = callbackQuery.chat.id
 
     setTimeout(() =>
       bot.sendMessage(
@@ -139,7 +139,7 @@ bot.on('message', (callbackQuery) => {
         `Что же, сегодня рынок решил пойти против тебя, такое бывает и это нормально! Лучше тебе всё-таки пойти отдохнуть, а завтра поднимешь сумму!`,
         parseMarkdown
       ), 4000
-    );
+    )
   } else if (callbackQuery.text === 'yes' || callbackQuery.text === 'да') {
     setTimeout(() =>
       bot.sendMessage(
@@ -147,7 +147,7 @@ bot.on('message', (callbackQuery) => {
         `Ты сделал ПРАВИЛЬНОЕ решение, молодец! Следование грамотной системе сильно поможет тебе.\n\nСессия закончена, отдохни!`,
         parseMarkdown
       ), 1000
-    );
+    )
   } else if (callbackQuery.text === 'no' || callbackQuery.text === 'нет') {
     setTimeout(() =>
       bot.sendMessage(
@@ -155,7 +155,7 @@ bot.on('message', (callbackQuery) => {
         `Ты точно наделаешь ошибок, поэтому прошу тебя, ОСТАНОВИ СЕССИЮ. Сохрани свой баланс, нервы и ВРЕМЯ.\n\nНе забывавай, ты можешь поторговать завтра с повышенным объёмом!`,
         parseMarkdown
       ), 1000
-    );
+    )
 
     setTimeout(() =>
       bot.sendMessage(
@@ -163,12 +163,12 @@ bot.on('message', (callbackQuery) => {
         `_${'Закончишь? 😕'}_`,
         parseMarkdown
       ), 5000
-    );
+    )
   }
-});
+})
 
 const handleStep1 = (msg) => {
-  const chatId = msg.chat.id;
+  const chatId = msg.chat.id
 
   const options = {
     reply_markup: {
@@ -212,61 +212,61 @@ const handleStep1 = (msg) => {
       ]
     },
     parse_mode: 'Markdown'
-  };
+  }
 
   bot.sendMessage(
     chatId,
     `_${'Для того, чтобы добавить итог сделки выполните несколько действий'}_.\n\n*${'Шаг 1: Выберите валютную пару'}*`,
     options
-  );
-};
+  )
+}
 
-var findingTimeIncrement = 1;
-var findingTimeElements = [];
-var allFindingTimes = [];
+var findingTimeIncrement = 1
+var findingTimeElements = []
+var allFindingTimes = []
 
 const handleStep2 = (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const currencyPair = callbackQuery.data;
+  const chatId = callbackQuery.message.chat.id
+  const currencyPair = callbackQuery.data
 
-  selections.currencyPair = currencyPair;
-  console.log('Валютная пара:', currencyPair);
+  selections.currencyPair = currencyPair
+  console.log('Валютная пара:', currencyPair)
 
-  let key = 'Поиск' + findingTimeIncrement;
+  let key = 'Поиск' + findingTimeIncrement
 
   if (selections.currencyPair !== '') {
-    endFindingTime = new Date(); // and start fulfilling the trade.
-    const timeDifferenceFinding = endFindingTime - startFindingTime;
-    var formattedFindingTime = formatToMinutes(timeDifferenceFinding);
-    var asdff = formattedFindingTime.replace(/[ минут[\] минуты[\] минута]/gm, '');
-    let formattedFindingTimeForAverage = Number(asdff);
+    endFindingTime = new Date() // and start fulfilling the trade.
+    const timeDifferenceFinding = endFindingTime - startFindingTime
+    var formattedFindingTime = formatToMinutes(timeDifferenceFinding)
+    var asdff = formattedFindingTime.replace(/[ минут[\] минуты[\] минута]/gm, '')
+    let formattedFindingTimeForAverage = Number(asdff)
 
-    allFindingTimes.push(formattedFindingTimeForAverage);
-  };
+    allFindingTimes.push(formattedFindingTimeForAverage)
+  }
 
   const findingTimeElement = {
     [key]: formattedFindingTime
-  };
+  }
 
-  findingTimeElements.push(findingTimeElement);
-  console.log('Все элементы нового массива со временем отработки сделки:', findingTimeElements);
+  findingTimeElements.push(findingTimeElement)
+  console.log('Все элементы нового массива со временем отработки сделки:', findingTimeElements)
 
-  bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, parseMarkdown);
+  bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, parseMarkdown)
   setTimeout(() => {
-    bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown);
+    bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown)
   }, 250)
-};
+}
 
-let attempts = [];
+let attempts = []
 
 const handleStep3 = (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const attempt = callbackQuery.data;
+  const chatId = callbackQuery.message.chat.id
+  const attempt = callbackQuery.data
 
-  attempts.push(attempt);
-  selections.attempt = attempt;
-  console.log('Попытки:', attempts);
-  console.log('Попытка:', attempt);
+  attempts.push(attempt)
+  selections.attempt = attempt
+  console.log('Попытки:', attempts)
+  console.log('Попытка:', attempt)
 
   const options = {
     reply_markup: {
@@ -289,53 +289,53 @@ const handleStep3 = (callbackQuery) => {
       ]
     },
     parse_mode: 'Markdown'
-  };
+  }
 
   bot.sendMessage(
     chatId,
     `*${'Шаг 4: Выберите итог сделки'}*`,
     options
-  );
-};
+  )
+}
 
-let hasMinus = false;
-let pluses = 0;
+let hasMinus = false
+let pluses = 0
 
-let fulfillingTimeIncrement = 0;
-let fulfillingTimeElements = [];
+let fulfillingTimeIncrement = 0
+let fulfillingTimeElements = []
 
-let allFulfillingTimes = [];
+let allFulfillingTimes = []
 
-let endings = [];
+let endings = []
 
 const handleStep4 = (callbackQuery) => {
-  const chatId = callbackQuery.message.chat.id;
-  const end = callbackQuery.data;
+  const chatId = callbackQuery.message.chat.id
+  const end = callbackQuery.data
 
-  endFulfilling = new Date();
-  const formattedDifferenceFulfilling = endFulfilling - endFindingTime;
-  var formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling);
-  var asdf = formattedFulfillingTime.replace(/[ минут[\] минуты[\] минута]/gm, null);
-  let formattedFulfillingTimeForAverage = parseInt(asdf);
+  endFulfilling = new Date()
+  const formattedDifferenceFulfilling = endFulfilling - endFindingTime
+  var formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling)
+  var asdf = formattedFulfillingTime.replace(/[ минут[\] минуты[\] минута]/gm, null)
+  let formattedFulfillingTimeForAverage = parseInt(asdf)
 
-  allFulfillingTimes.push(formattedFulfillingTimeForAverage);
+  allFulfillingTimes.push(formattedFulfillingTimeForAverage)
 
-  fulfillingTimeIncrement++;
-  let key = 'Отработка' + fulfillingTimeIncrement;
+  fulfillingTimeIncrement++
+  let key = 'Отработка' + fulfillingTimeIncrement
 
   const fulfillingTimeElement = {
     [key]: formattedFulfillingTime
-  };
+  }
 
-  fulfillingTimeElements.push(fulfillingTimeElement);
-  console.log('Все элементы нового массива со временем отработки сделки:', fulfillingTimeElements);
+  fulfillingTimeElements.push(fulfillingTimeElement)
+  console.log('Все элементы нового массива со временем отработки сделки:', fulfillingTimeElements)
 
-  endings.push(end);
-  selections.end = end;
-  console.log('Итоги:', endings);
-  console.log('Итог сделки:', end);
+  endings.push(end)
+  selections.end = end
+  console.log('Итоги:', endings)
+  console.log('Итог сделки:', end)
   
-  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\n*${'Описание:'}*\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\n*${'Комментарий:'}*\n_${ sele.comment }_` : '' }`;
+  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\n*${'Описание:'}*\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\n*${'Комментарий:'}*\n_${ sele.comment }_` : '' }`
 
   bot.sendMessage(chatId, `_${'Отправлено в канал:'}_`, parseMarkdown).then(() => {
     if (screenshots.length > 0) {
@@ -344,14 +344,14 @@ const handleStep4 = (callbackQuery) => {
           type: 'photo',
           media: fileId,
           parse_mode: 'Markdown'
-        };
+        }
 
         if (index === 0) {
-          mediaOptions.caption = message;
-        };
+          mediaOptions.caption = message
+        }
 
-        return mediaOptions;
-      });
+        return mediaOptions
+      })
 
       if (
           end === 'ПЛЮС 🚀' ||
@@ -362,7 +362,7 @@ const handleStep4 = (callbackQuery) => {
         ) {
           plusesGlobal++
           pluses++
-        };
+        }
 
       if (end === 'ОТМЕНЕНО 🛠') {
         setTimeout(() =>
@@ -371,10 +371,10 @@ const handleStep4 = (callbackQuery) => {
             `Тебе отменили сделку. Успокойся и продолжай! :)`,
             optionsWithCreateAndStop
           ), 500
-        );
+        )
 
-        cancelles++;
-      };
+        cancelles++
+      }
 
       if (end === 'МИНУС 💢' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
         setTimeout(() =>
@@ -383,13 +383,13 @@ const handleStep4 = (callbackQuery) => {
             `Ты получил минус из-за ошибки. Подумай пару минут, вспомни 3-е правило, подумай над причиной такого исхода и закончи предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности)'}_`,
             optionsWithStop
           ), 1000
-        );
-        hasMinus = true;
+        )
+        hasMinus = true
 
         setTimeout(() => {
-          hasMinus = false;
-        }, 43200000);
-      };
+          hasMinus = false
+        }, 43200000)
+      }
   
       if (end === 'МИНУС ❌' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
         setTimeout(() =>
@@ -398,131 +398,131 @@ const handleStep4 = (callbackQuery) => {
             `Ты получил минус из-за рынка. Если ты действительно уверен, что ты не наделал ошибок, то закончи это предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности, рынка)'}_`,
             optionsWithStop
           ), 1000
-        );
-        hasMinus = true;
+        )
+        hasMinus = true
 
         setTimeout(() => {
-          hasMinus = false;
-        }, 43200000);
-      };
+          hasMinus = false
+        }, 43200000)
+      }
 
       if (selections.attempt !== 'ОСНОВА') {
         setTimeout(() => {
-          bot.sendMessage(chatId, `*${`Ушло времени на отработку: ${ formattedFulfillingTime }`}*`, optionsWithCreateAndStop);
-        }, 500);
+          bot.sendMessage(chatId, `*${`Ушло времени на отработку: ${ formattedFulfillingTime }`}*`, optionsWithCreateAndStop)
+        }, 500)
       } else {
         setTimeout(() => {
-          bot.sendMessage(chatId, `*${'Нажмите кнопки, под клавиатурой'}*`, optionsWithCreateAndStop);
-        }, 500);
-      };
+          bot.sendMessage(chatId, `*${'Нажмите кнопки, под клавиатурой'}*`, optionsWithCreateAndStop)
+        }, 500)
+      }
 
-      // const channelId = '-1001875103729'; // ID of my BO trades channel
-      // bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')); // Send created post to channel
+      // const channelId = '-1001875103729' // ID of my BO trades channel
+      // bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')) // Send created post to channel
       bot.sendMediaGroup(chatId, media, parseMarkdown).then(() => {
-        findingTimeIncrement++;
-        createCounterGlobal++;
-        createCounter++;
+        findingTimeIncrement++
+        createCounterGlobal++
+        createCounter++
 
-        console.log('Итог создан.');
-      });
+        console.log('Итог создан.')
+      })
     } else {
 
-      bot.sendMessage(chatId, `*${'Итог не создан.'}*`, parseMarkdown);
-      console.log('Скриншоты не прикреплены.');
-    };
-  });
-};
+      bot.sendMessage(chatId, `*${'Итог не создан.'}*`, parseMarkdown)
+      console.log('Скриншоты не прикреплены.')
+    }
+  })
+}
 
 const roundUp = (num, precision) => {
-  precision = Math.pow(10, precision);
+  precision = Math.pow(10, precision)
 
-  return Math.ceil(num * precision) / precision;
-};
+  return Math.ceil(num * precision) / precision
+}
 
 function findLastSymbol(txt) {
-  const mapa = txt.toString().slice(-1);
+  const mapa = txt.toString().slice(-1)
   
-  return mapa;
-};
+  return mapa
+}
 
 function formatMilliseconds(ms) {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const hours = Math.floor(ms / (1000 * 60 * 60))
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
 
-  const formattedTime = `${ hours } ${'часов'} ${ addMinutes(minutes, 0) }`;
+  const formattedTime = `${ hours } ${'часов'} ${ addMinutes(minutes, 0) }`
 
-  return formattedTime;
-};
+  return formattedTime
+}
 
 function formatToMinutes(ms) {
-  const minutes = Math.floor(ms / 60000);
-  let formattedTime = 0; // добавить определение кол-ва минут, правильно записывать форму слова.
+  const minutes = Math.floor(ms / 60000)
+  let formattedTime = 0 // добавить определение кол-ва минут, правильно записывать форму слова.
 
   if (findLastSymbol(minutes) === '1' && minutes !== 11) {
-    formattedTime = `${ minutes } ${'минута'}`;
+    formattedTime = `${ minutes } ${'минута'}`
   } else if ((findLastSymbol(minutes) === '2' && minutes !== 12) || (findLastSymbol(minutes) === '3' && minutes !== 13) || findLastSymbol(minutes) === '4' && minutes !== 14) {
-    formattedTime = `${ minutes } ${'минуты'}`;
+    formattedTime = `${ minutes } ${'минуты'}`
   } else {
-    formattedTime = `${ minutes } ${'минут'}`;
-  };
+    formattedTime = `${ minutes } ${'минут'}`
+  }
 
-  return formattedTime;
+  return formattedTime
 }
 
 function addMinutes(mn, precision) {
-  let withMinutes;
-  const roundedMinutes = roundUp(mn, precision);
+  let withMinutes
+  const roundedMinutes = roundUp(mn, precision)
   
   if (findLastSymbol(roundedMinutes) === '1' && roundedMinutes !== 11) {
-    withMinutes = `${ roundedMinutes } ${'минута'}`;
+    withMinutes = `${ roundedMinutes } ${'минута'}`
   } else if ((findLastSymbol(roundedMinutes) === '2' && roundedMinutes !== 12) || (findLastSymbol(roundedMinutes) === '3' && roundedMinutes !== 13) || findLastSymbol(roundedMinutes) === '4' && roundedMinutes !== 14) {
-    withMinutes = `${ roundedMinutes } ${'минуты'}`;
+    withMinutes = `${ roundedMinutes } ${'минуты'}`
   } else {
-    withMinutes = `${ roundedMinutes } ${'минут'}`;
-  };
+    withMinutes = `${ roundedMinutes } ${'минут'}`
+  }
 
-  return withMinutes;
-};
+  return withMinutes
+}
 
-let startCounter = 0;
+let startCounter = 0
 
 // Обработчик команды /start
 bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
+  const chatId = msg.chat.id
 
   if (hasMinus === false) {
-    startTime = new Date();
+    startTime = new Date()
   
-    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n_${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`;
+    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n_${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
   
-    startCounter++;
-    console.log('Сессия начата!', startTime);
+    startCounter++
+    console.log('Сессия начата!', startTime)
     
-    bot.sendMessage(chatId, `*${'Вы начали сессию.'}*`, parseMarkdown);
+    bot.sendMessage(chatId, `*${'Вы начали сессию.'}*`, parseMarkdown)
     setTimeout(() => {
-      bot.sendMessage(chatId, rules, optionsWithCreate);
-    }, 250);
+      bot.sendMessage(chatId, rules, optionsWithCreate)
+    }, 250)
   } else if (hasMinus === true) {
-    bot.sendMessage(chatId, `*${'Ты получил лося, отдохни, расслабься. Ты сейчас ничего не вернёшь, наоборот, только хуже сделаешь. Но сессию ты остановил, молодец!'}*`, parseMarkdown);
-  };
-});
+    bot.sendMessage(chatId, `*${'Ты получил лося, отдохни, расслабься. Ты сейчас ничего не вернёшь, наоборот, только хуже сделаешь. Но сессию ты остановил, молодец!'}*`, parseMarkdown)
+  }
+})
 
-let createCounter = 0;
+let createCounter = 0
 
 // Обработчик команды /create
 bot.onText(/\/create/, (msg) => {
-  const chatId = msg.chat.id;
-  startFindingTime = new Date();
+  const chatId = msg.chat.id
+  startFindingTime = new Date()
 
   if (startCounter !== 0) {
-    handleStep1(msg);
+    handleStep1(msg)
 
     if (selections.currencyPair !== '' && selections.attempt === '') {
-      allFindingTimes.pop();
-      findingTimeElements.pop();
+      allFindingTimes.pop()
+      findingTimeElements.pop()
   
-      console.log('Ну, должно быть на один меньше...', findingTimeElements);
-    };
+      console.log('Ну, должно быть на один меньше...', findingTimeElements)
+    }
 
     selections = {
       currencyPair: '',
@@ -530,40 +530,40 @@ bot.onText(/\/create/, (msg) => {
       attempt: '',
       end: '',
       messageId: null
-    };
+    }
     sele = {
       comment: '',
       description: ''
-    };
-    screenshots = [];
+    }
+    screenshots = []
 
-    console.log(`Создание нового итога...`);
+    console.log(`Создание нового итога...`)
   } else if (hasMinus === true) {
-    bot.sendMessage(chatId, `*${'Ты получил лося, отдохни, расслабься. Ты сейчас ничего не вернёшь, наоборот, только хуже сделаешь. Но сессию ты остановил, молодец!'}*`, parseMarkdown);
+    bot.sendMessage(chatId, `*${'Ты получил лося, отдохни, расслабься. Ты сейчас ничего не вернёшь, наоборот, только хуже сделаешь. Но сессию ты остановил, молодец!'}*`, parseMarkdown)
   } else {
-    bot.sendMessage(chatId, `*${'Чтобы создать итог, начните сессию командой /start.'}*`, parseMarkdown);
-  };
-});
+    bot.sendMessage(chatId, `*${'Чтобы создать итог, начните сессию командой /start.'}*`, parseMarkdown)
+  }
+})
 
 // Обработчик команды /stop
 bot.onText(/\/stop/, (msg) => {
-  const chatId = msg.chat.id;
+  const chatId = msg.chat.id
   
   if (startCounter !== 0) {
-    const endTime = new Date();
-    const timeDifference = endTime - startTime;
-    const formattedDifference = formatMilliseconds(timeDifference);
+    const endTime = new Date()
+    const timeDifference = endTime - startTime
+    const formattedDifference = formatMilliseconds(timeDifference)
 
     if (selections.currencyPair !== '' && selections.attempt === '') {
-      allFindingTimes.pop();
-      findingTimeElements.pop();
+      allFindingTimes.pop()
+      findingTimeElements.pop()
   
-      console.log('Ну, должно быть на один меньше...', findingTimeElements);
-    };
+      console.log('Ну, должно быть на один меньше...', findingTimeElements)
+    }
 
-    console.log('Сессия закончена!', new Date());
+    console.log('Сессия закончена!', new Date())
 
-    let trades = [];
+    let trades = []
 
     const formattedArray = (arr, i) => {
 
@@ -578,151 +578,151 @@ bot.onText(/\/stop/, (msg) => {
         .replace(/[:][О]/gm, 'О')
         .replace(/:/gm, '\n')
         .replace(/_/gm, ':')
-        .replace(/-/gm, ', ');
+        .replace(/-/gm, ', ')
         
       // [{heading:'1 сделка',finding:{Поиск1:'0 минут'},fulfilling:{Отработка1:'0 минут'}},{heading:'2 сделка',finding:{Поиск2:'0 минут'},fulfilling:{Отработка2:'0 минут'}}]
 
-      return mody;
-    };
+      return mody
+    }
 
     const showAllTrades = () => {
       for (var i = 0; i < allFindingTimes.length; i++) {
-        let n = i + 1;
+        let n = i + 1
 
         const template = {
           heading: `*${ n + ' сделка' + '_' + ' ' + attempts[i] + '-' + endings[i] }*`,
           finding: findingTimeElements[i],
           fulfilling: fulfillingTimeElements[i]
-        };
+        }
         
-        trades.push(template);
-      };
-      console.log('trades:', trades);
+        trades.push(template)
+      }
+      console.log('trades:', trades)
       
-      return formattedArray(trades, i);
-    };
+      return formattedArray(trades, i)
+    }
 
     const sum = (arr) => {
-      const stepOne = arr.reduce((partialSum, a) => partialSum + a, 0);
-      const stepTwo = stepOne / allFulfillingTimes.length;
+      const stepOne = arr.reduce((partialSum, a) => partialSum + a, 0)
+      const stepTwo = stepOne / allFulfillingTimes.length
 
-      return stepTwo;
-    };
+      return stepTwo
+    }
 
-    const avgFinding = sum(allFindingTimes);
-    const avgFulfilling = sum(allFulfillingTimes);
+    const avgFinding = sum(allFindingTimes)
+    const avgFulfilling = sum(allFulfillingTimes)
 
-    console.log('avgFinding:', avgFinding);
-    console.log('avgFulfilling:', avgFulfilling);
+    console.log('avgFinding:', avgFinding)
+    console.log('avgFulfilling:', avgFulfilling)
     
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Хорошая получилась сессия!'}_`, optionsWithStart);
-      }, 300);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Хорошая получилась сессия!'}_`, optionsWithStart)
+      }, 300)
     } else if (hasMinus === true) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown);
-      }, 300);
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown)
+      }, 300)
     } else {
-      const templa = `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }`;
+      const templa = `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }`
 
       setTimeout(() => {
-        console.log(findingTimeElements, fulfillingTimeElements);
+        console.log(findingTimeElements, fulfillingTimeElements)
 
         // father's chat id is: ...
-        // bot.sendMessage(fatherChatId, templa, optionsWithStart);
-        bot.sendMessage(chatId, templa, optionsWithStart);
-        // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }\n\nСреднее время поиска: *${ avgFinding, 'минут' }*\nСреднее время отработки: *${ avgFulfilling, 'минут' }*`, optionsWithStatistic);
-      }, 300);
-    };
+        // bot.sendMessage(fatherChatId, templa, optionsWithStart)
+        bot.sendMessage(chatId, templa, optionsWithStart)
+        // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }\n\nСреднее время поиска: *${ avgFinding, 'минут' }*\nСреднее время отработки: *${ avgFulfilling, 'минут' }*`, optionsWithStatistic)
+      }, 300)
+    }
 
-    bot.sendMessage(chatId, `*${'Вы закончили сессию.'}*`, parseMarkdown);
+    bot.sendMessage(chatId, `*${'Вы закончили сессию.'}*`, parseMarkdown)
 
     setTimeout(() => {
-      pluses = 0;
-      startTime = null;
-      startCounter = 0;
-      createCounter = 0;
-      findingTimeIncrement = 1;
-      fulfillingTimeIncrement = 0;
-      endings = [];
-      attempts = [];
-      allFindingTimes = [];
-      allFulfillingTimes = [];
-      findingTimeElements = [];
-      fulfillingTimeElements = [];
-    }, 1000);
+      pluses = 0
+      startTime = null
+      startCounter = 0
+      createCounter = 0
+      findingTimeIncrement = 1
+      fulfillingTimeIncrement = 0
+      endings = []
+      attempts = []
+      allFindingTimes = []
+      allFulfillingTimes = []
+      findingTimeElements = []
+      fulfillingTimeElements = []
+    }, 1000)
   } else if (hasMinus === true) {
-    bot.sendMessage(chatId, `*${'Сессия уже закончена, подумай почему ты получил минус и отдохни!'}*`, parseMarkdown);
+    bot.sendMessage(chatId, `*${'Сессия уже закончена, подумай почему ты получил минус и отдохни!'}*`, parseMarkdown)
   } else {
-    bot.sendMessage(chatId, `*${'Чтобы закончить сессию, начните её командой /start.'}*`, parseMarkdown);
-  };
-});
+    bot.sendMessage(chatId, `*${'Чтобы закончить сессию, начните её командой /start.'}*`, parseMarkdown)
+  }
+})
 
 // Обработчик команды /help
 bot.onText(/\/help/, (msg) => {
-  const chatId = msg.chat.id;
-  const commands = `*${'КОМАНДЫ:'}*\n/start *${'— Начать сессию'}*\n/create *${'— Создать пост'}*\n/stop *${'— Остановить сессию'}*\n/help *${'— Список команд'}*\n/test *${'— Для тестов'}*\n/statistic *${'— Вся статистика'}*`;
+  const chatId = msg.chat.id
+  const commands = `*${'КОМАНДЫ:'}*\n/start *${'— Начать сессию'}*\n/create *${'— Создать пост'}*\n/stop *${'— Остановить сессию'}*\n/help *${'— Список команд'}*\n/test *${'— Для тестов'}*\n/statistic *${'— Вся статистика'}*`
   
-  bot.sendMessage(chatId, commands, parseMarkdown);
-});
+  bot.sendMessage(chatId, commands, parseMarkdown)
+})
 
-let createCounterGlobal = 0;
-let plusesGlobal = 0;
-let cancelles = 0;
+let createCounterGlobal = 0
+let plusesGlobal = 0
+let cancelles = 0
 
 // Обработчик команды /statistic
 bot.onText(/\/statistic/, (msg) => {
-  const chatId = msg.chat.id;
-  const statistic = `*${'СТАТИСТИКА:'}*\nОпубликовано: *${ createCounterGlobal }*\nОтработано: *${ plusesGlobal }*\nОтменено: *${ cancelles }*`;
+  const chatId = msg.chat.id
+  const statistic = `*${'СТАТИСТИКА:'}*\nОпубликовано: *${ createCounterGlobal }*\nОтработано: *${ plusesGlobal }*\nОтменено: *${ cancelles }*`
 
-  bot.sendMessage(chatId, statistic, optionsWithStart);
-});
+  bot.sendMessage(chatId, statistic, optionsWithStart)
+})
 
 bot.on('callback_query', (callbackQuery) => {
-  const step = Object.keys(selections).filter((key) => selections[key] === '').length;
+  const step = Object.keys(selections).filter((key) => selections[key] === '').length
 
   // если сессия не начата, нужно сказать начать. Нельзя выбрать какой-то пункт, если сессия не начата.
   if (step === 4) {
-    handleStep2(callbackQuery);
+    handleStep2(callbackQuery)
   } else if (step === 3) {
-    handleStep3(callbackQuery);
+    handleStep3(callbackQuery)
   } else if (step === 2) {
-    handleStep4(callbackQuery);
+    handleStep4(callbackQuery)
   }
-});
+})
 
 // Обработчик команды /test
 bot.onText(/\/test/, (msg) => {
   const chatId = msg.chat.id
 
 //   bot.on('message', (msg) => {
-//     const chatId = msg.chat.id;
-//     const text = msg.text;
+//     const chatId = msg.chat.id
+//     const text = msg.text
   
 //     switch (text) {
 //       case 'alah':
-//         bot.sendMessage(chatId, 'Ты не баран!');
-//         break;
+//         bot.sendMessage(chatId, 'Ты не баран!')
+//         break
 //       case '/create':
-//         bot.sendMessage(chatId, 'Переход в режим разработки...');
-//         break;
+//         bot.sendMessage(chatId, 'Переход в режим разработки...')
+//         break
 //       case '/stop':
 //         // 
-//         break;
+//         break
 //       case '/statistic':
 //         // 
-//         break;
+//         break
 //     }
-//   });
+//   })
 
   bot.sendMessage(
     chatId,
     `*${'Здень пока ничего нет! 🚧'}*`,
     optionsWithStart
-  );
-});
+  )
+})
 
 bot.on('polling_error', (error) => {
-  console.error('Ошибка при получении обновлений:', error);
-});
+  console.error('Ошибка при получении обновлений:', error)
+})
