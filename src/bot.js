@@ -412,7 +412,7 @@ const handleStep4 = (callbackQuery) => {
       }
 
       const channelId = '-1001875103729' // ID of my BO trades channel
-      bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')) // Send created post to channel
+      bot.sendMediaGroup(channelId, media, parseMarkdown).then(() => console.log('Итог опубликован.')) // Send created post to channel
       bot.sendMediaGroup(chatId, media, parseMarkdown).then(() => {
         findingTimeIncrement++
         createCounterGlobal++
