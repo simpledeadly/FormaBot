@@ -498,7 +498,7 @@ bot.onText(/\/start/, (msg) => {
     startCounter++
     console.log('Сессия начата!', startTime)
     
-    bot.sendMessage(chatId, `*${'Вы начали сессию.'}*`, parseMarkdown)
+    // bot.sendMessage(chatId, `*${'Вы начали сессию.'}*`, parseMarkdown)
     setTimeout(() => {
       bot.sendMessage(chatId, rules, optionsWithCreate)
     }, 250)
@@ -636,7 +636,7 @@ bot.onText(/\/stop/, (msg) => {
       }, 300)
     }
 
-    bot.sendMessage(chatId, `*${'Вы закончили сессию.'}*`, parseMarkdown)
+    // bot.sendMessage(chatId, `*${'Вы закончили сессию.'}*`, parseMarkdown)
 
     setTimeout(() => {
       pluses = 0
