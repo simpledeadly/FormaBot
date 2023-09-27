@@ -6,11 +6,10 @@ const {
   optionsWithStop,
   optionsWithStart,
   optionsWithCreate,
-  optionsWithStatistic,
   optionsWithCreateAndStop
 } = require('./lib/variables.js')
 
-console.log('Запущено!')
+console.log('Запущено на готовой версии!')
 
 const bot = new TelegramBot(token, { polling: true })
 
@@ -38,13 +37,13 @@ bot.on('message', (callbackQuery) => {
     if (sele.description === '' && descriptionOfEntry !== undefined) {
       sele.description = descriptionOfEntry
 
-      setTimeout(() => console.log(`Описание входа: ${ descriptionOfEntry }`), 500)
+      setTimeout(() => console.log(`Добавлено описание входа`), 500)
     } else if (sele.description === '' && descriptionOfEntry === '') {
       sele.description = ''
     }
     
     screenshots.push(fileId)
-    console.log(`Скриншот сохранен: ${ fileId }`)
+    console.log(`Получен скриншот`)
 
     if (screenshots.length > 1 && screenshots.length < 3 && selections.currencyPair) {
       const options = {
@@ -86,7 +85,7 @@ bot.on('message', (callbackQuery) => {
     const comment = callbackQuery.text
     
     sele.comment = comment
-    console.log('Комментарий:', comment)
+    console.log('Добавлен комментарий')
 
     bot.sendMessage(chatId, `*${'Комментарий обновлён'}*`, parseMarkdown)
   }
@@ -249,7 +248,6 @@ const handleStep2 = (callbackQuery) => {
   }
 
   findingTimeElements.push(findingTimeElement)
-  console.log('Все элементы нового массива со временем отработки сделки:', findingTimeElements)
 
   bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, parseMarkdown)
   setTimeout(() => {
@@ -265,7 +263,6 @@ const handleStep3 = (callbackQuery) => {
 
   attempts.push(attempt)
   selections.attempt = attempt
-  console.log('Попытки:', attempts)
   console.log('Попытка:', attempt)
 
   const options = {
@@ -328,11 +325,9 @@ const handleStep4 = (callbackQuery) => {
   }
 
   fulfillingTimeElements.push(fulfillingTimeElement)
-  console.log('Все элементы нового массива со временем отработки сделки:', fulfillingTimeElements)
 
   endings.push(end)
   selections.end = end
-  console.log('Итоги:', endings)
   console.log('Итог сделки:', end)
   
   const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\n*${'Описание:'}*\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\n*${'Комментарий:'}*\n_${ sele.comment }_` : '' }`
@@ -416,8 +411,8 @@ const handleStep4 = (callbackQuery) => {
         }, 500)
       }
 
-      // const channelId = '-1001875103729' // ID of my BO trades channel
-      // bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')) // Send created post to channel
+      const channelId = '-1001875103729' // ID of my BO trades channel
+      bot.sendMediaGroup(channelId, media, options).then(() => console.log('Итог опубликован.')) // Send created post to channel
       bot.sendMediaGroup(chatId, media, parseMarkdown).then(() => {
         findingTimeIncrement++
         createCounterGlobal++
@@ -456,7 +451,7 @@ function formatMilliseconds(ms) {
 
 function formatToMinutes(ms) {
   const minutes = Math.floor(ms / 60000)
-  let formattedTime = 0 // добавить определение кол-ва минут, правильно записывать форму слова.
+  let formattedTime = 0
 
   if (findLastSymbol(minutes) === '1' && minutes !== 11) {
     formattedTime = `${ minutes } ${'минута'}`
@@ -498,7 +493,7 @@ bot.onText(/\/start/, (msg) => {
     startCounter++
     console.log('Сессия начата!', startTime)
     
-    // bot.sendMessage(chatId, `*${'Вы начали сессию.'}*`, parseMarkdown)
+
     setTimeout(() => {
       bot.sendMessage(chatId, rules, optionsWithCreate)
     }, 250)
@@ -520,8 +515,6 @@ bot.onText(/\/create/, (msg) => {
     if (selections.currencyPair !== '' && selections.attempt === '') {
       allFindingTimes.pop()
       findingTimeElements.pop()
-  
-      console.log('Ну, должно быть на один меньше...', findingTimeElements)
     }
 
     selections = {
@@ -557,8 +550,6 @@ bot.onText(/\/stop/, (msg) => {
     if (selections.currencyPair !== '' && selections.attempt === '') {
       allFindingTimes.pop()
       findingTimeElements.pop()
-  
-      console.log('Ну, должно быть на один меньше...', findingTimeElements)
     }
 
     console.log('Сессия закончена!', new Date())
@@ -579,8 +570,6 @@ bot.onText(/\/stop/, (msg) => {
         .replace(/:/gm, '\n')
         .replace(/_/gm, ':')
         .replace(/-/gm, ', ')
-        
-      // [{heading:'1 сделка',finding:{Поиск1:'0 минут'},fulfilling:{Отработка1:'0 минут'}},{heading:'2 сделка',finding:{Поиск2:'0 минут'},fulfilling:{Отработка2:'0 минут'}}]
 
       return mody
     }
@@ -597,7 +586,6 @@ bot.onText(/\/stop/, (msg) => {
         
         trades.push(template)
       }
-      console.log('trades:', trades)
       
       return formattedArray(trades, i)
     }
@@ -611,9 +599,6 @@ bot.onText(/\/stop/, (msg) => {
 
     const avgFinding = sum(allFindingTimes)
     const avgFulfilling = sum(allFulfillingTimes)
-
-    console.log('avgFinding:', avgFinding)
-    console.log('avgFulfilling:', avgFulfilling)
     
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
@@ -627,16 +612,9 @@ bot.onText(/\/stop/, (msg) => {
       const templa = `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }`
 
       setTimeout(() => {
-        console.log(findingTimeElements, fulfillingTimeElements)
-
-        // father's chat id is: ...
-        // bot.sendMessage(fatherChatId, templa, optionsWithStart)
         bot.sendMessage(chatId, templa, optionsWithStart)
-        // bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }* ${ findingTimeElements.length > 0 ? `\n\nВремя поиска входа:\n*${ formattedArrayWithExtraInfo(findingTimeElements) }*` : '\n\nНет ни одного законченного итога.' } ${ fulfillingTimeElements.length > 0 ? `\n\nВремя отработки входа:\n*${ formattedArrayWithExtraInfo(fulfillingTimeElements) }*` : '' }\n\nСреднее время поиска: *${ avgFinding, 'минут' }*\nСреднее время отработки: *${ avgFulfilling, 'минут' }*`, optionsWithStatistic)
       }, 300)
     }
-
-    // bot.sendMessage(chatId, `*${'Вы закончили сессию.'}*`, parseMarkdown)
 
     setTimeout(() => {
       pluses = 0
@@ -682,7 +660,6 @@ bot.onText(/\/statistic/, (msg) => {
 bot.on('callback_query', (callbackQuery) => {
   const step = Object.keys(selections).filter((key) => selections[key] === '').length
 
-  // если сессия не начата, нужно сказать начать. Нельзя выбрать какой-то пункт, если сессия не начата.
   if (step === 4) {
     handleStep2(callbackQuery)
   } else if (step === 3) {
@@ -690,37 +667,6 @@ bot.on('callback_query', (callbackQuery) => {
   } else if (step === 2) {
     handleStep4(callbackQuery)
   }
-})
-
-// Обработчик команды /test
-bot.onText(/\/test/, (msg) => {
-  const chatId = msg.chat.id
-
-//   bot.on('message', (msg) => {
-//     const chatId = msg.chat.id
-//     const text = msg.text
-  
-//     switch (text) {
-//       case 'alah':
-//         bot.sendMessage(chatId, 'Ты не баран!')
-//         break
-//       case '/create':
-//         bot.sendMessage(chatId, 'Переход в режим разработки...')
-//         break
-//       case '/stop':
-//         // 
-//         break
-//       case '/statistic':
-//         // 
-//         break
-//     }
-//   })
-
-  bot.sendMessage(
-    chatId,
-    `*${'Здень пока ничего нет! 🚧'}*`,
-    optionsWithStart
-  )
 })
 
 bot.on('polling_error', (error) => {
