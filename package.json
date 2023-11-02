@@ -4,6 +4,7 @@
   "description": "",
   "main": "bot.js",
   "scripts": {
+    "compile": "tsc ./src/bot.ts",
     "start": "node ./src/bot.js"
   },
   "keywords": [
@@ -19,5 +20,9 @@
   "dependencies": {
     "chalk": "^5.3.0",
     "node-telegram-bot-api": "^0.61.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.7",
+    "typescript": "^5.2.2"
   }
 }

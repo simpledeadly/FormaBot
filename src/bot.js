@@ -8,6 +8,7 @@ const {
   optionsWithCreate,
   optionsWithCreateAndStop
 } = require('./lib/variables.js')
+const { createSecureContext } = require('tls')
 
 console.log('Запущено на готовой версии!')
 
@@ -21,27 +22,27 @@ let selections = {
   messageId: null
 }
 
-let sele = {
+let extraInfo = {
   comment: '',
   description: ''
 }
 
 let screenshots = []
 
-bot.on('message', (callbackQuery) => {
+bot.on('message', callbackQuery => {
   if (callbackQuery.photo) {
     const fileId = callbackQuery.photo[callbackQuery.photo.length - 1].file_id
     const chatId = callbackQuery.chat.id
     const descriptionOfEntry = callbackQuery.caption
 
-    if (sele.description === '' && descriptionOfEntry !== undefined) {
-      sele.description = descriptionOfEntry
+    if (extraInfo.description === '' && descriptionOfEntry !== undefined) {
+      extraInfo.description = descriptionOfEntry
 
       setTimeout(() => console.log(`Добавлено описание входа`), 500)
-    } else if (sele.description === '' && descriptionOfEntry === '') {
-      sele.description = ''
+    } else if (extraInfo.description === '' && descriptionOfEntry === '') {
+      extraInfo.description = ''
     }
-    
+
     screenshots.push(fileId)
     console.log(`Получен скриншот`)
 
@@ -58,19 +59,29 @@ bot.on('message', (callbackQuery) => {
         },
         parse_mode: 'Markdown'
       }
-  
+    
       bot.sendMessage(
         chatId,
         `*${'Шаг 3: Выберите с какой попытки сделка была закончена'}*\n${'(Можно добавить комментарий)'}`,
         options,
         selections.messageId
       )
-    } else {}
-  } else {}
+    }
+  }
 })
 
-bot.on('message', (callbackQuery) => {
+const messageWithTimeout = (chatId, message, option, timeout) => {
+  setTimeout(() => {
+    bot.sendMessage(chatId, message, option)
+  }, timeout)
+}
+
+bot.on('message', callbackQuery => {
   const chatId = callbackQuery.chat.id
+
+  const mistake1 = 'Я получил минус из-за спешки.'
+  const mistake2 = 'Я получил минус из-за невнимательности.'
+  const immistake1 = 'Я получил минус из-за рынка.'
 
   if (
     callbackQuery.text
@@ -81,92 +92,41 @@ bot.on('message', (callbackQuery) => {
     && callbackQuery.text !== '/help'
     && callbackQuery.text !== '/test'
     && callbackQuery.text !== '/statistic'
-    ) {
+    && callbackQuery.text !== mistake1
+    && callbackQuery.text !== mistake2
+    && callbackQuery.text !== immistake1
+  ) {
     const comment = callbackQuery.text
     
-    sele.comment = comment
+    extraInfo.comment = comment
     console.log('Добавлен комментарий')
 
     bot.sendMessage(chatId, `*${'Комментарий обновлён'}*`, parseMarkdown)
   }
-
-  const mistake1 = 'Я получил минус из-за спешки.'
-  const mistake2 = 'Я получил минус из-за невнимательности.'
-  const immistake1 = 'Я получил минус из-за рынка.'
-
-  if (callbackQuery.text === mistake1) {
-    const chatId = callbackQuery.chat.id
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `Если ты получил минус из-за спешки, то успокойся. И закончи сессию.`,
-        parseMarkdown
-      ), 2000
-    )
-    
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `_${'Закончишь? 🤨'}_`,
-        parseMarkdown
-      ), 5000
-    )
-  } else if (callbackQuery.text === mistake2) {
-    const chatId = callbackQuery.chat.id
-
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `Если ты получил минус из-за невнимательности, то тебе нужно *${'закончить сессию ПРЯМО СЕЙЧАС.'}*\n\nНе переживай, завтра повысишь сумму! 😉`,
-        parseMarkdown
-      ), 4000
-    )
-
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `_${'Закончишь? 🙂'}_`,
-        parseMarkdown
-      ), 7000
-    )
-  } else if (callbackQuery.text === immistake1) {
-    const chatId = callbackQuery.chat.id
-
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `Что же, сегодня рынок решил пойти против тебя, такое бывает и это нормально! Лучше тебе всё-таки пойти отдохнуть, а завтра поднимешь сумму!`,
-        parseMarkdown
-      ), 4000
-    )
-  } else if (callbackQuery.text === 'yes' || callbackQuery.text === 'да') {
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `Ты сделал ПРАВИЛЬНОЕ решение, молодец! Следование грамотной системе сильно поможет тебе.\n\nСессия закончена, отдохни!`,
-        parseMarkdown
-      ), 1000
-    )
-  } else if (callbackQuery.text === 'no' || callbackQuery.text === 'нет') {
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `Ты точно наделаешь ошибок, поэтому прошу тебя, ОСТАНОВИ СЕССИЮ. Сохрани свой баланс, нервы и ВРЕМЯ.\n\nНе забывавай, ты можешь поторговать завтра с повышенным объёмом!`,
-        parseMarkdown
-      ), 1000
-    )
-
-    setTimeout(() =>
-      bot.sendMessage(
-        chatId,
-        `_${'Закончишь? 😕'}_`,
-        parseMarkdown
-      ), 5000
-    )
+  
+  switch (callbackQuery.text) {
+    case mistake1:
+      messageWithTimeout(chatId, `Если ты получил минус из-за спешки, то успокойся. И закончи сессию.`, 2000)
+      messageWithTimeout(chatId, `_${'Закончишь? 🤨'}_`, 5000)
+      break
+    case mistake2:
+      messageWithTimeout(chatId, `Если ты получил минус из-за невнимательности, то тебе нужно *${'закончить сессию ПРЯМО СЕЙЧАС.'}*\n\nНе переживай, завтра повысишь сумму! 😉`, 4000)
+      messageWithTimeout(chatId, `_${'Закончишь? 🙂'}_`, 7000)
+      break
+    case immistake1:
+      messageWithTimeout(chatId, `Что же, сегодня рынок решил пойти против тебя, такое бывает и это нормально! Лучше тебе всё-таки пойти отдохнуть, а завтра поднимешь сумму!`, 4000)
+      break
+    case 'yes' || 'да':
+      messageWithTimeout(chatId, `Ты сделал ПРАВИЛЬНОЕ решение, молодец! Следование грамотной системе сильно поможет тебе.\n\nСессия закончена, отдохни!`, 1000)
+      break
+    case 'no' || 'нет':
+      messageWithTimeout(chatId, `Ты точно наделаешь ошибок, поэтому прошу тебя, ОСТАНОВИ СЕССИЮ. Сохрани свой баланс, нервы и ВРЕМЯ.\n\nНе забывавай, ты можешь поторговать завтра с повышенным объёмом!`, 1000)
+      messageWithTimeout(chatId, `_${'Закончишь? 😕'}_`, 5000)
+      break
   }
 })
 
-const handleStep1 = (msg) => {
+const handleStep1 = msg => {
   const chatId = msg.chat.id
 
   const options = {
@@ -220,79 +180,103 @@ const handleStep1 = (msg) => {
   )
 }
 
-var findingTimeIncrement = 1
-var findingTimeElements = []
-var allFindingTimes = []
+let findingTimeIncrement = 1
+let findingTimeElements = []
+let allFindingTimes = []
 
-const handleStep2 = (callbackQuery) => {
+const handleStep2 = callbackQuery => {
   const chatId = callbackQuery.message.chat.id
-  const currencyPair = callbackQuery.data
+  let currencyPair = ''
+  
+  let currencyPairs = [
+    'AUD/CAD 🇦🇺/🇨🇦', 'AUD/CHF 🇦🇺/🇨🇭', 'AUD/JPY 🇦🇺/🇯🇵',
+    'AUD/USD 🇦🇺/🇺🇸', 'CAD/CHF 🇨🇦/🇨🇭', 'CAD/JPY 🇨🇦/🇯🇵',
+    'CHF/JPY 🇨🇭/🇯🇵', 'EUR/AUD 🇪🇺/🇦🇺', 'EUR/CAD 🇪🇺/🇨🇦',
+    'EUR/CHF 🇪🇺/🇨🇭', 'EUR/GBP 🇪🇺/🇬🇧', 'EUR/JPY 🇪🇺/🇯🇵',
+    'EUR/USD 🇪🇺/🇺🇸', 'GBP/AUD 🇬🇧/🇦🇺', 'GBP/CAD 🇬🇧/🇨🇦',
+    'GBP/CHF 🇬🇧/🇨🇭', 'GBP/JPY 🇬🇧/🇯🇵', 'GBP/USD 🇬🇧/🇺🇸',
+    'USD/CAD 🇺🇸/🇨🇦', 'USD/CHF 🇺🇸/🇨🇭', 'USD/JPY 🇺🇸/🇯🇵',
+    'USD/CNH 🇺🇸/🇨🇳'
+  ]
+  
+  const check = currencyPairs.includes(callbackQuery.data)
 
-  selections.currencyPair = currencyPair
-  console.log('Валютная пара:', currencyPair)
+  if (check === true) {
+    currencyPair = callbackQuery.data
+    selections.currencyPair = currencyPair
+    console.log('Валютная пара:', currencyPair)
 
-  let key = 'Поиск' + findingTimeIncrement
-
-  if (selections.currencyPair !== '') {
+    let key = 'Поиск' + findingTimeIncrement
     endFindingTime = new Date() // and start fulfilling the trade.
     const timeDifferenceFinding = endFindingTime - startFindingTime
-    var formattedFindingTime = formatToMinutes(timeDifferenceFinding)
-    var asdff = formattedFindingTime.replace(/[ минут[\] минуты[\] минута]/gm, '')
-    let formattedFindingTimeForAverage = Number(asdff)
+    const formattedFindingTime = formatToMinutes(timeDifferenceFinding)
+    const formatMinutesEnding = formattedFindingTime.replace(/[ минут[\] минуты[\] минута]/gm, '')
+    const formattedFindingTimeForAverage = Number(formatMinutesEnding)
 
     allFindingTimes.push(formattedFindingTimeForAverage)
+
+    const findingTimeElement = {
+      [key]: formattedFindingTime
+    }
+
+    findingTimeElements.push(findingTimeElement)
+
+    bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, parseMarkdown)
+    setTimeout(() => {
+      bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown).then(() => screenshots = [])
+    }, 250)
+  } else {
+    console.log('С выбранной тобой парой что-то неладное!!!')
+    bot.sendMessage(chatId, `*${'Корректно выберите валютную пару'}*`, parseMarkdown)
   }
-
-  const findingTimeElement = {
-    [key]: formattedFindingTime
-  }
-
-  findingTimeElements.push(findingTimeElement)
-
-  bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, parseMarkdown)
-  setTimeout(() => {
-    bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown)
-  }, 250)
 }
 
 let attempts = []
 
-const handleStep3 = (callbackQuery) => {
+const handleStep3 = callbackQuery => {
   const chatId = callbackQuery.message.chat.id
-  const attempt = callbackQuery.data
+  let attempt = ''
 
-  attempts.push(attempt)
-  selections.attempt = attempt
-  console.log('Попытка:', attempt)
+  const attemptsArray = ['ОСНОВА', 'ПЕРЕКРЫТИЕ', '2 ПЕРЕКРЫТИЕ']
 
-  const options = {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: '🚫 Пропустил', callback_data: 'ПРОПУЩЕНО 🚫' },
-          { text: '🛠 Отменили', callback_data: 'ОТМЕНЕНО 🛠' },
-          { text: '⚡️ Импульс', callback_data: 'ПЛЮС ⚡️' }
-        ],
-        [
-          { text: '💢 Ошибся', callback_data: 'МИНУС 💢' },
-          { text: '❌ Рынок', callback_data: 'МИНУС ❌' },
-          { text: '💥 Вау', callback_data: 'ПЛЮС 💥' }
-        ],
-        [
-          { text: '♻️ Возврат', callback_data: 'ВОЗВРАТ ♻️' },
-          { text: '✅ Плюс', callback_data: 'ПЛЮС ✅' },
-          { text: '🚀 Уверенно', callback_data: 'ПЛЮС 🚀' }
+  const check = attemptsArray.includes(callbackQuery.data)
+
+  if (check === true) {
+    attempt = callbackQuery.data
+    attempts.push(attempt)
+    selections.attempt = attempt
+    console.log('Попытка:', attempt)
+
+    const options = {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '🚫 Пропустил', callback_data: 'ПРОПУЩЕНО 🚫' },
+            { text: '🛠 Отменили', callback_data: 'ОТМЕНЕНО 🛠' },
+            { text: '⚡️ Импульс', callback_data: 'ПЛЮС ⚡️' }
+          ],
+          [
+            { text: '💢 Ошибся', callback_data: 'МИНУС 💢' },
+            { text: '❌ Рынок', callback_data: 'МИНУС ❌' },
+            { text: '💥 Вау', callback_data: 'ПЛЮС 💥' }
+          ],
+          [
+            { text: '♻️ Возврат', callback_data: 'ВОЗВРАТ ♻️' },
+            { text: '✅ Плюс', callback_data: 'ПЛЮС ✅' },
+            { text: '🚀 Уверенно', callback_data: 'ПЛЮС 🚀' }
+          ]
         ]
-      ]
-    },
-    parse_mode: 'Markdown'
+      },
+      parse_mode: 'Markdown'
+    }
+    bot.sendMessage(chatId, `*${'Шаг 4: Выберите итог сделки'}*`, options)
+  } else if (screenshots.length < 2) {
+    console.log('Прикрепи СКРИИНШООТТЫЫЫЫЫ!!!')
+    bot.sendMessage(chatId, `*${'Добавьте как минимум 2 скриншота'}*`, parseMarkdown)
+  } else {
+    console.log('С выбранной тобой попыткой что-то не то!!!')
+    bot.sendMessage(chatId, `*${'Корректно выберите попытку'}*`, parseMarkdown)
   }
-
-  bot.sendMessage(
-    chatId,
-    `*${'Шаг 4: Выберите итог сделки'}*`,
-    options
-  )
 }
 
 let hasMinus = false
@@ -305,50 +289,57 @@ let allFulfillingTimes = []
 
 let endings = []
 
-const handleStep4 = (callbackQuery) => {
+const handleStep4 = callbackQuery => {
   const chatId = callbackQuery.message.chat.id
-  const end = callbackQuery.data
+  let end = ''
 
-  endFulfilling = new Date()
-  const formattedDifferenceFulfilling = endFulfilling - endFindingTime
-  var formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling)
-  var asdf = formattedFulfillingTime.replace(/[ минут[\] минуты[\] минута]/gm, null)
-  let formattedFulfillingTimeForAverage = parseInt(asdf)
+  const endingsArray = ['ПРОПУЩЕНО 🚫', 'ОТМЕНЕНО 🛠', 'ПЛЮС ⚡️', 'МИНУС 💢', 'МИНУС ❌', 'ПЛЮС 💥', 'ВОЗВРАТ ♻️', 'ПЛЮС ✅', 'ПЛЮС 🚀']
 
-  allFulfillingTimes.push(formattedFulfillingTimeForAverage)
+  const check = endingsArray.includes(callbackQuery.data)
 
-  fulfillingTimeIncrement++
-  let key = 'Отработка' + fulfillingTimeIncrement
+  if (check === true) {
+    end = callbackQuery.data
+    selections.end = end
 
-  const fulfillingTimeElement = {
-    [key]: formattedFulfillingTime
-  }
+    endFulfilling = new Date()
+    const formattedDifferenceFulfilling = endFulfilling - endFindingTime
+    let formattedFulfillingTime = formatToMinutes(formattedDifferenceFulfilling)
+    let asdf = formattedFulfillingTime.replace(/[ минут[\] минуты[\] минута]/gm, null)
+    let formattedFulfillingTimeForAverage = parseInt(asdf)
 
-  fulfillingTimeElements.push(fulfillingTimeElement)
+    allFulfillingTimes.push(formattedFulfillingTimeForAverage)
 
-  endings.push(end)
-  selections.end = end
-  console.log('Итог сделки:', end)
-  
-  const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ sele.description !== '' ? `\n\n*${'Описание:'}*\n${ sele.description }` : '' } ${ sele.comment !== '' ? `\n\n*${'Комментарий:'}*\n_${ sele.comment }_` : '' }`
+    fulfillingTimeIncrement++
+    let key = 'Отработка' + fulfillingTimeIncrement
 
-  bot.sendMessage(chatId, `_${'Отправлено в канал:'}_`, parseMarkdown).then(() => {
-    if (screenshots.length > 0) {
-      const media = screenshots.map((fileId, index) => {
-        const mediaOptions = {
-          type: 'photo',
-          media: fileId,
-          parse_mode: 'Markdown'
-        }
+    const fulfillingTimeElement = {
+      [key]: formattedFulfillingTime
+    }
 
-        if (index === 0) {
-          mediaOptions.caption = message
-        }
+    fulfillingTimeElements.push(fulfillingTimeElement)
 
-        return mediaOptions
-      })
+    endings.push(end)
+    selections.end = end
+    console.log('Итог сделки:', end)
+    
+    const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ extraInfo.description !== '' ? `\n\n*${'Описание:'}*\n${ extraInfo.description }` : '' } ${ extraInfo.comment !== '' ? `\n\n*${'Комментарий:'}*\n_${ extraInfo.comment }_` : '' }`
 
-      if (
+    bot.sendMessage(chatId, `_${'Отправлено в канал:'}_`, parseMarkdown).then(() => {
+      if (screenshots.length > 0) {
+        const media = screenshots.map((fileId, index) => {
+          const mediaOptions = {
+            type: 'photo',
+            media: fileId,
+            parse_mode: 'Markdown'
+          }
+
+          if (index === 0) {
+            mediaOptions.caption = message
+          }
+          return mediaOptions
+        })
+
+        if (
           end === 'ПЛЮС 🚀' ||
           end === 'ПЛЮС ✅' ||
           end === 'ПЛЮС 💥' ||
@@ -359,97 +350,60 @@ const handleStep4 = (callbackQuery) => {
           pluses++
         }
 
-      if (end === 'ОТМЕНЕНО 🛠') {
-        setTimeout(() =>
-          bot.sendMessage(
-            chatId,
-            `Тебе отменили сделку. Успокойся и продолжай! :)`,
-            optionsWithCreateAndStop
-          ), 500
-        )
+        if (end === 'ОТМЕНЕНО 🛠') {
+          messageWithTimeout(chatId, `Тебе отменили сделку. Успокойся и продолжай! :)`, optionsWithCreateAndStop, 500)
+          cancelles++
+        } else if (end === 'МИНУС 💢' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
+          messageWithTimeout(chatId, `Ты получил минус из-за ошибки. Подумай пару минут, вспомни 3-е правило, подумай над причиной такого исхода и закончи предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности)'}_`, optionsWithStop, 1000)
+          hasMinus = true
+          setTimeout(() => hasMinus = false, 21600000)
+        } else if (end === 'МИНУС ❌' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
+          messageWithTimeout(chatId, `Ты получил минус из-за рынка. Если ты действительно уверен, что ты не наделал ошибок, то закончи это предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности, рынка)'}_`, optionsWithStop, 1000)
+          hasMinus = true
+          setTimeout(() => hasMinus = false, 21600000)
+        } else if (selections.attempt !== 'ОСНОВА') {
+          messageWithTimeout(chatId, `*${`Ушло времени на отработку: ${ formattedFulfillingTime }`}*`, optionsWithCreateAndStop, 500)
+        } else {
+          messageWithTimeout(chatId, `*${'Нажмите кнопки, под клавиатурой'}*`, optionsWithCreateAndStop, 500)
+        }
 
-        cancelles++
-      }
-
-      if (end === 'МИНУС 💢' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
-        setTimeout(() =>
-          bot.sendMessage(
-            chatId,
-            `Ты получил минус из-за ошибки. Подумай пару минут, вспомни 3-е правило, подумай над причиной такого исхода и закончи предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности)'}_`,
-            optionsWithStop
-          ), 1000
-        )
-        hasMinus = true
-
-        setTimeout(() => {
-          hasMinus = false
-        }, 43200000)
-      }
-  
-      if (end === 'МИНУС ❌' && selections.attempt === '2 ПЕРЕКРЫТИЕ') {
-        setTimeout(() =>
-          bot.sendMessage(
-            chatId,
-            `Ты получил минус из-за рынка. Если ты действительно уверен, что ты не наделал ошибок, то закончи это предложение:\n_${'«Я получил минус из-за ...» (Напр.: спешки, невнимательности, рынка)'}_`,
-            optionsWithStop
-          ), 1000
-        )
-        hasMinus = true
-
-        setTimeout(() => {
-          hasMinus = false
-        }, 43200000)
-      }
-
-      if (selections.attempt !== 'ОСНОВА') {
-        setTimeout(() => {
-          bot.sendMessage(chatId, `*${`Ушло времени на отработку: ${ formattedFulfillingTime }`}*`, optionsWithCreateAndStop)
-        }, 500)
+        const channelId = '-1001875103729' // ID of my BO trades channel
+        // bot.sendMediaGroup(channelId, media, parseMarkdown).then(() => console.log('Итог опубликован.')) // Send created post to channel
+        bot.sendMediaGroup(chatId, media, parseMarkdown).then(() => {
+          findingTimeIncrement++
+          createCounterGlobal++
+          createCounter++
+          console.log('Итог создан.')
+        })
       } else {
-        setTimeout(() => {
-          bot.sendMessage(chatId, `*${'Нажмите кнопки, под клавиатурой'}*`, optionsWithCreateAndStop)
-        }, 500)
+        bot.sendMessage(chatId, `*${'Итог не создан.'}*`, parseMarkdown)
+        console.log('Скриншоты не прикреплены.')
       }
-
-      const channelId = '-1001875103729' // ID of my BO trades channel
-      bot.sendMediaGroup(channelId, media, parseMarkdown).then(() => console.log('Итог опубликован.')) // Send created post to channel
-      bot.sendMediaGroup(chatId, media, parseMarkdown).then(() => {
-        findingTimeIncrement++
-        createCounterGlobal++
-        createCounter++
-
-        console.log('Итог создан.')
-      })
-    } else {
-
-      bot.sendMessage(chatId, `*${'Итог не создан.'}*`, parseMarkdown)
-      console.log('Скриншоты не прикреплены.')
-    }
-  })
+    })
+  } else {
+    console.log('С выбранным тобой итогом что-то неладное!!!')
+    bot.sendMessage(chatId, `*${'Корректно выберите итог'}*`, parseMarkdown)
+  }
 }
 
 const roundUp = (num, precision) => {
   precision = Math.pow(10, precision)
-
   return Math.ceil(num * precision) / precision
 }
 
-function findLastSymbol(txt) {
+const findLastSymbol = txt => {
   const mapa = txt.toString().slice(-1)
-  
   return mapa
 }
 
-function formatMilliseconds(ms) {
+const formatMilliseconds = ms => {
   const hours = Math.floor(ms / (1000 * 60 * 60))
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
 
-  const formattedTime = `${ hours } ${'часов'} ${ addMinutes(minutes, 0) }`
-
-  return formattedTime
+  return `${ hours } ${'часов'} ${ addMinutes(minutes, 0) }`
 }
 
-function formatToMinutes(ms) {
+const formatToMinutes = ms => {
   const minutes = Math.floor(ms / 60000)
   let formattedTime = 0
 
@@ -460,11 +414,10 @@ function formatToMinutes(ms) {
   } else {
     formattedTime = `${ minutes } ${'минут'}`
   }
-
   return formattedTime
 }
 
-function addMinutes(mn, precision) {
+const addMinutes = (mn, precision) => {
   let withMinutes
   const roundedMinutes = roundUp(mn, precision)
   
@@ -475,38 +428,35 @@ function addMinutes(mn, precision) {
   } else {
     withMinutes = `${ roundedMinutes } ${'минут'}`
   }
-
   return withMinutes
 }
 
 let startCounter = 0
 
 // Обработчик команды /start
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, msg => {
   const chatId = msg.chat.id
 
   if (hasMinus === false) {
     startTime = new Date()
-  
-    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n_${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
-  
     startCounter++
     console.log('Сессия начата!', startTime)
-    
+  
+    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n_${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
 
-    setTimeout(() => {
-      bot.sendMessage(chatId, rules, optionsWithCreate)
-    }, 250)
+    messageWithTimeout(chatId, rules, optionsWithCreate, 250)
   } else if (hasMinus === true) {
     bot.sendMessage(chatId, `*${'Ты получил лося, отдохни, расслабься. Ты сейчас ничего не вернёшь, наоборот, только хуже сделаешь. Но сессию ты остановил, молодец!'}*`, parseMarkdown)
   }
 })
 
 let createCounter = 0
+let createBtnClicked = 0
 
 // Обработчик команды /create
-bot.onText(/\/create/, (msg) => {
+bot.onText(/\/create/, msg => {
   const chatId = msg.chat.id
+  createBtnClicked++
   startFindingTime = new Date()
 
   if (startCounter !== 0) {
@@ -524,7 +474,7 @@ bot.onText(/\/create/, (msg) => {
       end: '',
       messageId: null
     }
-    sele = {
+    extraInfo = {
       comment: '',
       description: ''
     }
@@ -539,7 +489,7 @@ bot.onText(/\/create/, (msg) => {
 })
 
 // Обработчик команды /stop
-bot.onText(/\/stop/, (msg) => {
+bot.onText(/\/stop/, msg => {
   const chatId = msg.chat.id
   
   if (startCounter !== 0) {
@@ -557,7 +507,6 @@ bot.onText(/\/stop/, (msg) => {
     let trades = []
 
     const formattedArray = (arr, i) => {
-
       const mody = JSON.stringify(arr)
         .replace(/[{}[\]h\/feading[\]'[\]"[\]ul]/gm, '')
         .replace(/,/gm, '\n')
@@ -575,7 +524,7 @@ bot.onText(/\/stop/, (msg) => {
     }
 
     const showAllTrades = () => {
-      for (var i = 0; i < allFindingTimes.length; i++) {
+      for (let i = 0; i < allFindingTimes.length; i++) {
         let n = i + 1
 
         const template = {
@@ -583,14 +532,13 @@ bot.onText(/\/stop/, (msg) => {
           finding: findingTimeElements[i],
           fulfilling: fulfillingTimeElements[i]
         }
-        
         trades.push(template)
       }
-      
-      return formattedArray(trades, i)
+      // return formattedArray(trades, i)
+      return formattedArray(trades)
     }
 
-    const sum = (arr) => {
+    const sum = arr => {
       const stepOne = arr.reduce((partialSum, a) => partialSum + a, 0)
       const stepTwo = stepOne / allFulfillingTimes.length
 
@@ -602,14 +550,14 @@ bot.onText(/\/stop/, (msg) => {
     
     if (createCounter === pluses && pluses >= 5) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Хорошая получилась сессия!'}_`, optionsWithStart)
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ createCounter !== 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Хорошая получилась сессия!'}_`, optionsWithStart)
       }, 300)
     } else if (hasMinus === true) {
       setTimeout(() => {
-        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown)
+        bot.sendMessage(chatId, `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ createCounter !== 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }\n\n_${'Успокойся, не переживай. Ты молодец, ты смог остановиться. Ты на верном пути к избавлению от жадности! Всё обязательно наладиться, только соблюдай систему и будь внимателен!'}_`, parseMarkdown)
       }, 300)
     } else {
-      const templa = `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ findingTimeElements.length > 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }`
+      const templa = `*${'ИТОГИ СЕССИИ:'}*\nПродолжительность: *${ formattedDifference }*\nОпубликовано: *${ createCounter }*\nОтработано: *${ pluses }*\n${ createCounter !== 0 ? showAllTrades() : `_${ '\nНет ни одного законченного итога. '}_` } ${ avgFinding >= 0 ? `\n\nСреднее время поиска: *${ addMinutes(avgFinding, 1) }*` : '' } ${ avgFulfilling >= 0 ? `\nСреднее время отработки: *${ addMinutes(avgFulfilling, 1) }*` : '' }`
 
       setTimeout(() => {
         bot.sendMessage(chatId, templa, optionsWithStart)
@@ -621,14 +569,28 @@ bot.onText(/\/stop/, (msg) => {
       startTime = null
       startCounter = 0
       createCounter = 0
+      createBtnClicked = 0
       findingTimeIncrement = 1
       fulfillingTimeIncrement = 0
       endings = []
       attempts = []
+      screenshots = []
       allFindingTimes = []
       allFulfillingTimes = []
       findingTimeElements = []
       fulfillingTimeElements = []
+
+      selections = {
+        currencyPair: '',
+        outcome: '',
+        attempt: '',
+        end: '',
+        messageId: null
+      }
+      extraInfo = {
+        comment: '',
+        description: ''
+      }
     }, 1000)
   } else if (hasMinus === true) {
     bot.sendMessage(chatId, `*${'Сессия уже закончена, подумай почему ты получил минус и отдохни!'}*`, parseMarkdown)
@@ -638,7 +600,7 @@ bot.onText(/\/stop/, (msg) => {
 })
 
 // Обработчик команды /help
-bot.onText(/\/help/, (msg) => {
+bot.onText(/\/help/, msg => {
   const chatId = msg.chat.id
   const commands = `*${'КОМАНДЫ:'}*\n/start *${'— Начать сессию'}*\n/create *${'— Создать пост'}*\n/stop *${'— Остановить сессию'}*\n/help *${'— Список команд'}*\n/test *${'— Для тестов'}*\n/statistic *${'— Вся статистика'}*`
   
@@ -650,17 +612,17 @@ let plusesGlobal = 0
 let cancelles = 0
 
 // Обработчик команды /statistic
-bot.onText(/\/statistic/, (msg) => {
+bot.onText(/\/statistic/, msg => {
   const chatId = msg.chat.id
   const statistic = `*${'СТАТИСТИКА:'}*\nОпубликовано: *${ createCounterGlobal }*\nОтработано: *${ plusesGlobal }*\nОтменено: *${ cancelles }*`
 
   bot.sendMessage(chatId, statistic, optionsWithStart)
 })
 
-bot.on('callback_query', (callbackQuery) => {
-  const step = Object.keys(selections).filter((key) => selections[key] === '').length
+bot.on('callback_query', callbackQuery => {
+  const step = Object.keys(selections).filter(key => selections[key] === '').length
 
-  if (step === 4) {
+  if (step === 4 && startCounter !== 0 && createBtnClicked !== 0) {
     handleStep2(callbackQuery)
   } else if (step === 3) {
     handleStep3(callbackQuery)
@@ -669,6 +631,4 @@ bot.on('callback_query', (callbackQuery) => {
   }
 })
 
-bot.on('polling_error', (error) => {
-  console.error('Ошибка при получении обновлений:', error)
-})
+bot.on('polling_error', error => console.error('Ошибка при получении обновлений:', error))
