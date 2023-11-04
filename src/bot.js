@@ -40,6 +40,8 @@ bot.on('message', callbackQuery => {
       setTimeout(() => console.log(`Добавлено описание входа`), 500)
     } else if (extraInfo.description === '' && descriptionOfEntry === '') {
       extraInfo.description = ''
+    } else if (extraInfo.description !== '' && descriptionOfEntry !== undefined) {
+      extraInfo.description += '\n\n' + descriptionOfEntry
     }
 
     screenshots.push(fileId)
