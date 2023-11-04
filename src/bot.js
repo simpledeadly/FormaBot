@@ -212,9 +212,6 @@ const handleStep2 = callbackQuery => {
     findingTimeElements.push(findingTimeElement)
 
     bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, parseMarkdown)
-    // setTimeout(() => {
-    //   bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown)
-    // }, 250)
     messageWithTimeout(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown, 250)
   } else {
     bot.answerCallbackQuery(callbackQuery.id, { text: 'Корректно выберите валютную пару', show_alert: false })
@@ -357,7 +354,7 @@ const handleStep4 = callbackQuery => {
         }
 
         const channelId = '-1001875103729' // ID of my BO trades channel
-        // bot.sendMediaGroup(channelId, media, parseMarkdown).then(() => console.log('Итог опубликован.')) // Send created post to channel
+        bot.sendMediaGroup(channelId, media, parseMarkdown).then(() => console.log('Итог опубликован.')) // Send created post to channel
         bot.sendMediaGroup(chatId, media, parseMarkdown).then(() => {
           findingTimeIncrement++
           createCounterGlobal++
@@ -446,15 +443,6 @@ bot.onText(/\/create/, msg => {
   const chatId = msg.chat.id
   createBtnClicked++
   startFindingTime = new Date()
-
-  // // new feature
-  // const getHourMinutes = new Date().getMinutes()
-
-  // if (getHourMinutes < 5 || getHourMinutes >= 54) {
-  //   bot.answerCallbackQuery(msg.id, { text: 'Сейчас период закрытия/открытия часа, возможно сильные импульсы. Лучше переждать.', show_alert: true })
-  // } else {
-  //   bot.answerCallbackQuery(msg.id, { text: 'Можно спокойно торговать!', show_alert: true })
-  // }
 
   if (startCounter !== 0) {
     handleStep1(msg)
