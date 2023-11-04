@@ -8,7 +8,6 @@ const {
   optionsWithCreate,
   optionsWithCreateAndStop
 } = require('./lib/variables.js')
-const { createSecureContext } = require('tls')
 
 console.log('Запущено на готовой версии!')
 
@@ -78,23 +77,22 @@ const messageWithTimeout = (chatId, message, option, timeout) => {
 
 bot.on('message', callbackQuery => {
   const chatId = callbackQuery.chat.id
-
-  const mistake1 = 'Я получил минус из-за спешки.'
-  const mistake2 = 'Я получил минус из-за невнимательности.'
-  const immistake1 = 'Я получил минус из-за рынка.'
+  const text = callbackQuery.text
 
   if (
-    callbackQuery.text
+    text
     && selections.currencyPair !== ''
-    && callbackQuery.text !== '/start'
-    && callbackQuery.text !== '/stop'
-    && callbackQuery.text !== '/create'
-    && callbackQuery.text !== '/help'
-    && callbackQuery.text !== '/test'
-    && callbackQuery.text !== '/statistic'
-    && callbackQuery.text !== mistake1
-    && callbackQuery.text !== mistake2
-    && callbackQuery.text !== immistake1
+    && text !== '/stop'
+    && text !== '/test'
+    && text !== '/help'
+    && text !== '/start'
+    && text !== '/create'
+    && text !== '/statistic'
+    && !text.toLowerCase().includes('невнимательност')
+    && !text.toLowerCase().includes('спешк')
+    && !text.toLowerCase().includes('рын')
+    && !text.toLowerCase().includes('нет')
+    && !text.toLowerCase().includes('да')
   ) {
     const comment = callbackQuery.text
     
@@ -102,27 +100,19 @@ bot.on('message', callbackQuery => {
     console.log('Добавлен комментарий')
 
     bot.sendMessage(chatId, `*${'Комментарий обновлён'}*`, parseMarkdown)
-  }
-  
-  switch (callbackQuery.text) {
-    case mistake1:
-      messageWithTimeout(chatId, `Если ты получил минус из-за спешки, то успокойся. И закончи сессию.`, 2000)
-      messageWithTimeout(chatId, `_${'Закончишь? 🤨'}_`, 5000)
-      break
-    case mistake2:
-      messageWithTimeout(chatId, `Если ты получил минус из-за невнимательности, то тебе нужно *${'закончить сессию ПРЯМО СЕЙЧАС.'}*\n\nНе переживай, завтра повысишь сумму! 😉`, 4000)
-      messageWithTimeout(chatId, `_${'Закончишь? 🙂'}_`, 7000)
-      break
-    case immistake1:
-      messageWithTimeout(chatId, `Что же, сегодня рынок решил пойти против тебя, такое бывает и это нормально! Лучше тебе всё-таки пойти отдохнуть, а завтра поднимешь сумму!`, 4000)
-      break
-    case 'yes' || 'да':
-      messageWithTimeout(chatId, `Ты сделал ПРАВИЛЬНОЕ решение, молодец! Следование грамотной системе сильно поможет тебе.\n\nСессия закончена, отдохни!`, 1000)
-      break
-    case 'no' || 'нет':
-      messageWithTimeout(chatId, `Ты точно наделаешь ошибок, поэтому прошу тебя, ОСТАНОВИ СЕССИЮ. Сохрани свой баланс, нервы и ВРЕМЯ.\n\nНе забывавай, ты можешь поторговать завтра с повышенным объёмом!`, 1000)
-      messageWithTimeout(chatId, `_${'Закончишь? 😕'}_`, 5000)
-      break
+  } else if (hasMinus === true && text.toLowerCase().includes('спешк')) {
+    messageWithTimeout(chatId, `Если ты получил минус из-за спешки, то успокойся. И закончи сессию.`, parseMarkdown, 2000)
+    messageWithTimeout(chatId, `_${'Закончишь? 🤨'}_`, parseMarkdown, 5000)
+  } else if (hasMinus === true && text.toLowerCase().includes('невнимательност')) {
+    messageWithTimeout(chatId, `Если ты получил минус из-за невнимательности, то тебе нужно *${'закончить сессию ПРЯМО СЕЙЧАС.'}*\n\nНе переживай, завтра повысишь сумму! 😉`, parseMarkdown, 4000)
+    messageWithTimeout(chatId, `_${'Закончишь? 🙂'}_`, parseMarkdown, 7000)
+  } else if (hasMinus === true && text.toLowerCase().includes('рын')) {
+    messageWithTimeout(chatId, `Что же, сегодня рынок решил пойти против тебя, такое бывает и это нормально! Лучше тебе всё-таки пойти отдохнуть, а завтра поднимешь сумму!`, parseMarkdown, 4000)
+  } else if (hasMinus === true && (text.toLowerCase().includes('да') || text.toLowerCase().includes('yes'))) {
+    messageWithTimeout(chatId, `Ты сделал ПРАВИЛЬНОЕ решение, молодец! Следование грамотной системе сильно поможет тебе.\n\nСессия закончена, отдохни!`, parseMarkdown, 1000)
+  } else if (hasMinus === true && (text.toLowerCase().includes('нет') || text.toLowerCase().includes('no'))) {
+    messageWithTimeout(chatId, `Ты точно наделаешь ошибок, поэтому прошу тебя, ОСТАНОВИ СЕССИЮ. Сохрани свой баланс, нервы и ВРЕМЯ.\n\nНе забывавай, ты можешь поторговать завтра с повышенным объёмом!`, parseMarkdown, 1000)
+    messageWithTimeout(chatId, `_${'Закончишь? 😕'}_`, parseMarkdown, 5000)
   }
 })
 
@@ -222,12 +212,12 @@ const handleStep2 = callbackQuery => {
     findingTimeElements.push(findingTimeElement)
 
     bot.sendMessage(chatId, `*${'Ушло времени на поиск: ' + formattedFindingTime }*`, parseMarkdown)
-    setTimeout(() => {
-      bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown).then(() => screenshots = [])
-    }, 250)
+    // setTimeout(() => {
+    //   bot.sendMessage(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown)
+    // }, 250)
+    messageWithTimeout(chatId, `*${'Шаг 2: Прикрепите скриншоты'}* ${'(минимум: 2)'}`, parseMarkdown, 250)
   } else {
-    console.log('С выбранной тобой парой что-то неладное!!!')
-    bot.sendMessage(chatId, `*${'Корректно выберите валютную пару'}*`, parseMarkdown)
+    bot.answerCallbackQuery(callbackQuery.id, { text: 'Корректно выберите валютную пару', show_alert: false })
   }
 }
 
@@ -271,11 +261,9 @@ const handleStep3 = callbackQuery => {
     }
     bot.sendMessage(chatId, `*${'Шаг 4: Выберите итог сделки'}*`, options)
   } else if (screenshots.length < 2) {
-    console.log('Прикрепи СКРИИНШООТТЫЫЫЫЫ!!!')
-    bot.sendMessage(chatId, `*${'Добавьте как минимум 2 скриншота'}*`, parseMarkdown)
+    bot.answerCallbackQuery(callbackQuery.id, { text: 'Добавьте как минимум 2 скриншота', show_alert: false })
   } else {
-    console.log('С выбранной тобой попыткой что-то не то!!!')
-    bot.sendMessage(chatId, `*${'Корректно выберите попытку'}*`, parseMarkdown)
+    bot.answerCallbackQuery(callbackQuery.id, { text: 'Корректно выберите попытку', show_alert: false })
   }
 }
 
@@ -324,6 +312,7 @@ const handleStep4 = callbackQuery => {
     
     const message = `Валютная пара: *${ selections.currencyPair }*\nПопытка: *${ selections.attempt }*\nИтог сделки: *${ selections.end }* ${ extraInfo.description !== '' ? `\n\n*${'Описание:'}*\n${ extraInfo.description }` : '' } ${ extraInfo.comment !== '' ? `\n\n*${'Комментарий:'}*\n_${ extraInfo.comment }_` : '' }`
 
+    // bot.sendDice(chatId, parseMarkdown)
     bot.sendMessage(chatId, `_${'Отправлено в канал:'}_`, parseMarkdown).then(() => {
       if (screenshots.length > 0) {
         const media = screenshots.map((fileId, index) => {
@@ -381,8 +370,7 @@ const handleStep4 = callbackQuery => {
       }
     })
   } else {
-    console.log('С выбранным тобой итогом что-то неладное!!!')
-    bot.sendMessage(chatId, `*${'Корректно выберите итог'}*`, parseMarkdown)
+    bot.answerCallbackQuery(callbackQuery.id, { text: 'Корректно выберите итог', show_alert: false })
   }
 }
 
@@ -392,8 +380,8 @@ const roundUp = (num, precision) => {
 }
 
 const findLastSymbol = txt => {
-  const mapa = txt.toString().slice(-1)
-  return mapa
+  const lastSymbol = txt.toString().slice(-1)
+  return lastSymbol
 }
 
 const formatMilliseconds = ms => {
@@ -442,7 +430,7 @@ bot.onText(/\/start/, msg => {
     startCounter++
     console.log('Сессия начата!', startTime)
   
-    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n_${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
+    const rules = `*${'ПРАВИЛА:'}*\n1. Никакой жадности, никаких надежд.\n2. Строгое отношение к рынку.\n_${'Как будто с полицейским разговариваю.'}_\n3. Нельзя беситься. _${'Цитата ниже.'}_\n4. Заполнить бота прежде, чем выражать эмоции.\n5. *${'Цель:'}* всеми силами сохранить как можно больший баланс. _${'Нужно стараться "избежать ДТП".'}_\n\nПо анализу:\n1. В районе десятка свечей от текущей, необходима четкая ОСО с экстремумами.\n2. Если ситуация теряет актуальность – есть право выйти из этой ситуации.\n3. Обновлять границы области.\n\n*${'«Негативные эмоции тормозят процесс размышлений»'}*`
 
     messageWithTimeout(chatId, rules, optionsWithCreate, 250)
   } else if (hasMinus === true) {
@@ -458,6 +446,15 @@ bot.onText(/\/create/, msg => {
   const chatId = msg.chat.id
   createBtnClicked++
   startFindingTime = new Date()
+
+  // // new feature
+  // const getHourMinutes = new Date().getMinutes()
+
+  // if (getHourMinutes < 5 || getHourMinutes >= 54) {
+  //   bot.answerCallbackQuery(msg.id, { text: 'Сейчас период закрытия/открытия часа, возможно сильные импульсы. Лучше переждать.', show_alert: true })
+  // } else {
+  //   bot.answerCallbackQuery(msg.id, { text: 'Можно спокойно торговать!', show_alert: true })
+  // }
 
   if (startCounter !== 0) {
     handleStep1(msg)
